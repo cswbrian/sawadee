@@ -1,4 +1,24 @@
-# React + TypeScript + Vite
+# Learn Thai App
+
+A React + TypeScript + Vite application for learning Thai.
+
+## 🚀 Deployment
+
+This app is configured for GitHub Pages deployment via GitHub Actions. The app will be automatically deployed when you push to the `main` branch.
+
+### Live Site
+The app is available at: https://cswbrian.github.io/learn-thai-app/
+
+### Manual Setup (if needed)
+
+1. Go to your repository settings on GitHub
+2. Navigate to "Pages" in the sidebar
+3. Under "Source", select "GitHub Actions"
+4. The workflow will automatically deploy on every push to `main`
+
+---
+
+## Development
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
