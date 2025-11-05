@@ -1,11 +1,8 @@
 import { consonants, type ConsonantClass } from "@/data/consonants";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { ConsonantCard } from "./ConsonantCard";
 
 const getClassColor = (classType: ConsonantClass): string => {
   const colorMap: Record<ConsonantClass, string> = {
@@ -120,21 +117,7 @@ export const Consonants = () => {
         layout: { duration: 0.5, ease: [0.4, 0, 0.2, 1] }
       }}
     >
-      <Card
-        className="flex flex-col items-center justify-center p-3 min-h-[80px]"
-        style={{ backgroundColor: bgColor }}
-      >
-        <CardContent className={`flex flex-col items-center justify-center p-0 ${showSound ? 'gap-2' : ''}`}>
-          <div className="text-5xl text-foreground thai-font leading-none text-center">
-            {consonant.thai}
-          </div>
-          {showSound && (
-            <div className="text-md text-muted-foreground text-center">
-              {consonant.consonantSound || "-"}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ConsonantCard consonant={consonant} showSound={showSound} />
     </motion.div>
   );
 
