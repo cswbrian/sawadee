@@ -122,7 +122,7 @@ export const Consonants = () => {
   );
 
   return (
-    <div className="min-h-svh bg-background p-4 pb-8">
+    <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-6 text-center text-2xl">Initial Consonants</h1>
         <Tabs defaultValue="class" className="w-full">

@@ -176,6 +176,14 @@ export const ReadingQuiz = () => {
     }
   };
 
+  const handleClearAll = () => {
+    if (activeTab === "class") {
+      setSelectedClassGroups(new Set());
+    } else {
+      setSelectedPopularityGroups(new Set());
+    }
+  };
+
   const handleStartQuiz = () => {
     // Use selected groups from the active tab
     const selectedGroups = activeTab === "class" ? selectedClassGroups : selectedPopularityGroups;
@@ -295,7 +303,7 @@ export const ReadingQuiz = () => {
 
   if (quizState === "selection") {
     return (
-      <div className="min-h-svh bg-background p-4 pb-8">
+      <div className="bg-background p-4 pb-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-6">
             <h1 className="text-2xl">Reading Quiz - Select Group</h1>
@@ -396,14 +404,6 @@ export const ReadingQuiz = () => {
           </Tabs>
 
           <div className="mt-8 flex flex-col items-center gap-4">
-            {(() => {
-              const selectedGroups = activeTab === "class" ? selectedClassGroups : selectedPopularityGroups;
-              return selectedGroups.size > 0 ? (
-                <Badge className="text-sm">
-                  {selectedGroups.size} {selectedGroups.size === 1 ? "group" : "groups"} selected
-                </Badge>
-              ) : null;
-            })()}
             <Button
               variant="default"
               size="lg"
@@ -415,6 +415,14 @@ export const ReadingQuiz = () => {
             >
               Start Quiz
             </Button>
+            {(() => {
+              const selectedGroups = activeTab === "class" ? selectedClassGroups : selectedPopularityGroups;
+              return selectedGroups.size > 0 ? (
+                <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full max-w-md">
+                  Clear All
+                </Button>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>
@@ -426,7 +434,7 @@ export const ReadingQuiz = () => {
     const progress = ((currentIndex + 1) / shuffledConsonants.length) * 100;
 
     return (
-      <div className="min-h-svh bg-background p-4 pb-8">
+      <div className="bg-background p-4 pb-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-6">
             <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
@@ -534,7 +542,7 @@ export const ReadingQuiz = () => {
     });
 
     return (
-      <div className="min-h-svh bg-background p-4 pb-8">
+      <div className="bg-background p-4 pb-8">
         <div className="mx-auto max-w-4xl">
           <div className="flex min-h-[60vh] flex-col items-center gap-8 py-8">
             <Card className="w-full max-w-2xl p-8">

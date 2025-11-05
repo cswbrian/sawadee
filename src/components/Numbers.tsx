@@ -15,7 +15,7 @@ export const Numbers = () => {
         layout: { duration: 0.5, ease: [0.4, 0, 0.2, 1] }
       }}
     >
-      <Card className="flex flex-col items-center justify-center p-3 min-h-[80px]">
+      <Card className="flex flex-col items-center justify-center p-3 min-h-[80px] bg-white">
         <CardContent className="flex flex-col items-center justify-center gap-2 p-0">
           <div className="text-5xl text-foreground thai-font leading-none text-center">
             {thaiNumber.thai}
@@ -34,7 +34,7 @@ export const Numbers = () => {
   );
 
   return (
-    <div className="min-h-svh bg-background p-4 pb-8">
+    <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
         <h1 className="mb-6 text-center text-2xl">Thai Numbers</h1>
         <motion.div
