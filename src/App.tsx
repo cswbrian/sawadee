@@ -35,7 +35,7 @@ function Navigation() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/learn-thai-app">
       <div className="min-h-svh bg-background pb-16">
         <Routes>
           <Route path="/" element={<Consonants />} />
