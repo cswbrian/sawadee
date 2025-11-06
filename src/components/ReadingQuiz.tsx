@@ -501,7 +501,7 @@ export const ReadingQuiz = () => {
                       size="lg"
                       onClick={() => handleAnswerSelect(sound)}
                       disabled={isDisabled}
-                      className={`text-lg ${backgroundColor || ""} border-2 border-border transition-all ${
+                      className={`h-16 text-xl ${backgroundColor || ""} border-2 border-border transition-all ${
                         isDisabled ? "cursor-not-allowed" : ""
                       }`}
                     >
