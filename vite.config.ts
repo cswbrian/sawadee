@@ -60,12 +60,18 @@ export default defineConfig(({ command }) => {
         name: "Sawadee - Learn Thai",
         short_name: "Sawadee",
         description: "A modern web application for learning Thai language",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
-        display: "standalone",
-        orientation: "portrait",
+        // Theme colors matching your app's design
+        theme_color: "#EFEAE3", // Main background color from your theme
+        background_color: "#EFEAE3", // Light background color
+        display: "standalone", // Options: "standalone" | "fullscreen" | "minimal-ui" | "browser"
+        orientation: "portrait", // Options: "portrait" | "landscape" | "any" | "natural"
         scope: command === "build" ? "./" : "/",
         start_url: command === "build" ? "./" : "/",
+        // Additional PWA options
+        categories: ["education", "learning"], // App categories
+        lang: "en", // Language
+        dir: "ltr", // Text direction
+        prefer_related_applications: false, // Don't prefer native apps
         icons: [
           {
             src: "pwa-64x64.png",
