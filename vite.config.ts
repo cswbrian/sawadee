@@ -61,8 +61,8 @@ export default defineConfig(({ command }) => {
         short_name: "Sawadee",
         description: "A modern web application for learning Thai language",
         // Theme colors matching your app's design
-        theme_color: "#EFEAE3", // Main background color from your theme
-        background_color: "#EFEAE3", // Light background color
+        theme_color: "#fdf4c8", // Main background color from your theme
+        background_color: "#fdf4c8", // Light background color
         display: "standalone", // Options: "standalone" | "fullscreen" | "minimal-ui" | "browser"
         orientation: "portrait", // Options: "portrait" | "landscape" | "any" | "natural"
         scope: command === "build" ? "./" : "/",
