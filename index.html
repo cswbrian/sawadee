@@ -23,6 +23,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200;300;400;500;600;700;800&family=Sarabun:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>Sawadee - Learn Thai</title>
+    <!-- Prevent flash of white background on PWA load -->
+    <style>
+      body {
+        background-color: #fdf4c8;
+        margin: 0;
+      }
+      #root {
+        min-height: 100vh;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
