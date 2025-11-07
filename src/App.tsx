@@ -7,6 +7,9 @@ import { Vowels } from "@/components/Vowels";
 import { Home } from "@/components/Home";
 import { FinalConsonants } from "@/components/FinalConsonants";
 import { Letters } from "@/components/Letters";
+import { Settings } from "@/components/Settings";
+import { ReadingQuiz } from "@/components/ReadingQuiz";
+import { NumbersQuiz } from "@/components/NumbersQuiz";
 
 const QuizContext = createContext<{
   isInQuiz: boolean;
@@ -53,12 +56,22 @@ function Navigation() {
         <Link
           to="/quiz"
           className={`flex flex-1 items-center justify-center font-base transition-colors ${
-            location.pathname === "/quiz"
+            location.pathname === "/quiz" || location.pathname.startsWith("/quiz/")
               ? "bg-main text-main-foreground"
               : "text-foreground hover:bg-secondary-background"
           }`}
         >
           Quiz
+        </Link>
+        <Link
+          to="/settings"
+          className={`flex flex-1 items-center justify-center font-base transition-colors ${
+            location.pathname === "/settings"
+              ? "bg-main text-main-foreground"
+              : "text-foreground hover:bg-secondary-background"
+          }`}
+        >
+          Settings
         </Link>
       </div>
     </nav>
@@ -95,6 +108,9 @@ function App() {
             <Route path="/letters/vowels" element={<Vowels />} />
             <Route path="/letters/numbers" element={<Numbers />} />
             <Route path="/quiz" element={<Quiz />} />
+            <Route path="/quiz/initial-consonants" element={<ReadingQuiz />} />
+            <Route path="/quiz/numbers" element={<NumbersQuiz />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
           <Navigation />
         </div>

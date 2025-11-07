@@ -8,6 +8,10 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuizContext } from "@/App";
 import { ConsonantCard } from "./ConsonantCard";
+import { loadSettings } from "@/lib/settings";
+import { recordAnswer, selectWeighted } from "@/lib/stats";
+
+const QUIZ_TYPE = "initial_consonant" as const;
 
 const getClassColor = (classType: ConsonantClass): string => {
   const colorMap: Record<ConsonantClass, string> = {
@@ -221,10 +225,21 @@ export const ReadingQuiz = () => {
       new Map(allConsonants.map((c) => [c.thai, c])).values()
     );
 
-    // Shuffle and limit to maximum 10 consonants
-    const shuffled = [...uniqueConsonants]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 10);
+    // Check if adaptive learning is enabled
+    const settings = loadSettings();
+    let shuffled: Consonant[];
+    
+    if (settings.adaptiveLearning) {
+      // Use weighted selection based on user performance
+      shuffled = selectWeighted(QUIZ_TYPE, uniqueConsonants, 10);
+      // Shuffle the final selection
+      shuffled = shuffled.sort(() => Math.random() - 0.5);
+    } else {
+      // Regular random selection
+      shuffled = [...uniqueConsonants]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+    }
 
     setQuizTab(activeTab);
     setShuffledConsonants(shuffled);
@@ -247,6 +262,10 @@ export const ReadingQuiz = () => {
     if (selectedAnswer !== null && shuffledConsonants[currentIndex]) {
       const currentConsonant = shuffledConsonants[currentIndex];
       const isCorrect = selectedAnswer === currentConsonant.consonantSound;
+      
+      // Record the answer for stats tracking
+      recordAnswer(QUIZ_TYPE, currentConsonant.thai, isCorrect);
+      
       setAnswerResults((prev) => [
         ...prev,
         {
@@ -288,10 +307,22 @@ export const ReadingQuiz = () => {
       new Map(allConsonants.map((c) => [c.thai, c])).values()
     );
 
-    // Shuffle and limit to maximum 10 consonants
-    const shuffled = [...uniqueConsonants]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 10);
+    // Check if adaptive learning is enabled
+    const settings = loadSettings();
+    let shuffled: Consonant[];
+    
+    if (settings.adaptiveLearning) {
+      // Use weighted selection based on user performance
+      shuffled = selectWeighted(QUIZ_TYPE, uniqueConsonants, 10);
+      // Shuffle the final selection
+      shuffled = shuffled.sort(() => Math.random() - 0.5);
+    } else {
+      // Regular random selection
+      shuffled = [...uniqueConsonants]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+    }
+    
     setShuffledConsonants(shuffled);
     setCurrentIndex(0);
     setSelectedAnswer(null);

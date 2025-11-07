@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { StrugglingLetters } from "./StrugglingLetters";
 
 export const Home = () => {
   return (
     <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-12 mt-6 text-left text-5xl font-bold">Sawadee</h1>
+        <h1 className="my-6 text-left text-5xl font-bold">Sawadee</h1>
         
         {/* Letters Section */}
         <section className="mb-12">
@@ -70,24 +71,8 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* Quiz Section */}
-        <section>
-          <h2 className="mb-6 text-left text-2xl font-bold">Quiz</h2>
-          <Link to="/quiz" className="w-full">
-            <Button 
-              variant="default" 
-              size="lg" 
-              className="w-full text-lg py-8 flex-col h-auto"
-              style={{ 
-                backgroundColor: "var(--chart-5)",
-                borderColor: "var(--border)"
-              }}
-            >
-              <span className="thai-font text-5xl mb-2">📝</span>
-              <span>Start Quiz</span>
-            </Button>
-          </Link>
-        </section>
+        {/* Need Practice Section - replaces Quiz section */}
+        <StrugglingLetters />
       </div>
     </div>
   );

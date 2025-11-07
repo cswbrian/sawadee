@@ -5,7 +5,7 @@ export const Letters = () => {
   return (
     <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-12 mt-6 text-left text-5xl font-bold">Letters</h1>
+        <h1 className="my-6 text-left text-5xl font-bold">Letters</h1>
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
           <Link to="/letters/consonants" className="w-full">
