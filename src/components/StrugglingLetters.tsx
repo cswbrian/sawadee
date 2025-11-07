@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { loadStats, getCorrectPercentage, type QuizType } from "@/lib/stats";
 import { consonants } from "@/data/consonants";
 import { numbers } from "@/data/numbers";

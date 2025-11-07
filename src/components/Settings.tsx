@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { loadSettings, updateSetting, type Settings } from "@/lib/settings";
+import { loadSettings, updateSetting, type Settings as SettingsType } from "@/lib/settings";
 
 export const Settings = () => {
-  const [settings, setSettings] = useState<Settings>(loadSettings());
+  const [settings, setSettings] = useState<SettingsType>(loadSettings());
 
   useEffect(() => {
     // Reload settings in case they changed elsewhere
