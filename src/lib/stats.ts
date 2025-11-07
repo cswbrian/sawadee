@@ -146,3 +146,159 @@ export const selectWeighted = <T extends { thai: string }>(
   return selected;
 };
 
+// Stats calculation for progress overview
+export interface CategoryStats {
+  total: number;
+  mastered: number; // ≥90% with ≥3 attempts
+  familiar: number; // 70-89% with ≥3 attempts
+  learning: number; // 50-69% with ≥3 attempts
+  struggling: number; // <50% with ≥3 attempts
+  notStarted: number; // 0 attempts
+  masteryPercentage: number; // percentage of mastered letters
+  averageAccuracy: number; // average correctness for letters with attempts
+}
+
+export interface OverallStats {
+  totalLetters: number;
+  mastered: number;
+  familiar: number;
+  learning: number;
+  struggling: number;
+  notStarted: number;
+  masteryPercentage: number; // percentage of letters mastered
+  averageAccuracy: number;
+  level: "beginner" | "intermediate" | "advanced" | "expert";
+}
+
+const MIN_ATTEMPTS_FOR_MASTERY = 3;
+const MASTERY_THRESHOLD = 90;
+const FAMILIAR_THRESHOLD = 70;
+const LEARNING_THRESHOLD = 50;
+
+// Calculate stats for a specific category
+export const getCategoryStats = <T extends { thai: string }>(
+  quizType: QuizType,
+  items: T[]
+): CategoryStats => {
+  const stats = loadStats(quizType);
+  let mastered = 0;
+  let familiar = 0;
+  let learning = 0;
+  let struggling = 0;
+  let notStarted = 0;
+  let totalAccuracy = 0;
+  let itemsWithAttempts = 0;
+
+  items.forEach((item) => {
+    const itemStats = stats[item.thai];
+    if (!itemStats || itemStats.attempts === 0) {
+      notStarted++;
+      return;
+    }
+
+    const percentage = getCorrectPercentage(itemStats)!;
+    totalAccuracy += percentage;
+    itemsWithAttempts++;
+
+    if (itemStats.attempts < MIN_ATTEMPTS_FOR_MASTERY) {
+      // Not enough attempts to determine mastery
+      return;
+    }
+
+    if (percentage >= MASTERY_THRESHOLD) {
+      mastered++;
+    } else if (percentage >= FAMILIAR_THRESHOLD) {
+      familiar++;
+    } else if (percentage >= LEARNING_THRESHOLD) {
+      learning++;
+    } else {
+      struggling++;
+    }
+  });
+
+  const masteryPercentage = (mastered / items.length) * 100;
+  const averageAccuracy = itemsWithAttempts > 0 
+    ? totalAccuracy / itemsWithAttempts 
+    : 0;
+
+  return {
+    total: items.length,
+    mastered,
+    familiar,
+    learning,
+    struggling,
+    notStarted,
+    masteryPercentage,
+    averageAccuracy,
+  };
+};
+
+// Calculate overall stats across all categories
+// Note: This function should be called from a component that imports the data arrays
+// to avoid circular dependencies
+export const getOverallStats = (
+  consonants: { thai: string }[],
+  finalConsonants: { thai: string }[],
+  vowels: { thai: string }[],
+  numbers: { thai: string }[]
+): OverallStats => {
+  const consonantsStats = getCategoryStats("initial_consonant", consonants);
+  const finalConsonantsStats = getCategoryStats("final_consonant", finalConsonants);
+  const vowelsStats = getCategoryStats("vowel", vowels);
+  const numbersStats = getCategoryStats("number", numbers);
+
+  const totalMastered = consonantsStats.mastered + finalConsonantsStats.mastered + 
+                       vowelsStats.mastered + numbersStats.mastered;
+  const totalLetters = consonantsStats.total + finalConsonantsStats.total + 
+                      vowelsStats.total + numbersStats.total;
+  const totalFamiliar = consonantsStats.familiar + finalConsonantsStats.familiar + 
+                       vowelsStats.familiar + numbersStats.familiar;
+  const totalLearning = consonantsStats.learning + finalConsonantsStats.learning + 
+                        vowelsStats.learning + numbersStats.learning;
+  const totalStruggling = consonantsStats.struggling + finalConsonantsStats.struggling + 
+                          vowelsStats.struggling + numbersStats.struggling;
+  const totalNotStarted = consonantsStats.notStarted + finalConsonantsStats.notStarted + 
+                          vowelsStats.notStarted + numbersStats.notStarted;
+
+  const masteryPercentage = (totalMastered / totalLetters) * 100;
+  
+  // Calculate weighted average accuracy
+  const totalWithAttempts = consonantsStats.total - consonantsStats.notStarted +
+                            finalConsonantsStats.total - finalConsonantsStats.notStarted +
+                            vowelsStats.total - vowelsStats.notStarted +
+                            numbersStats.total - numbersStats.notStarted;
+  
+  const totalWeightedAccuracy = consonantsStats.averageAccuracy * (consonantsStats.total - consonantsStats.notStarted) +
+                                finalConsonantsStats.averageAccuracy * (finalConsonantsStats.total - finalConsonantsStats.notStarted) +
+                                vowelsStats.averageAccuracy * (vowelsStats.total - vowelsStats.notStarted) +
+                                numbersStats.averageAccuracy * (numbersStats.total - numbersStats.notStarted);
+  
+  const averageAccuracy = totalWithAttempts > 0
+    ? totalWeightedAccuracy / totalWithAttempts
+    : 0;
+
+  // Determine level based on mastery percentage
+  let level: "beginner" | "intermediate" | "advanced" | "expert";
+  if (masteryPercentage < 25) {
+    level = "beginner";
+  } else if (masteryPercentage < 60) {
+    level = "intermediate";
+  } else if (masteryPercentage < 85) {
+    level = "advanced";
+  } else {
+    level = "expert";
+  }
+
+  return {
+    totalLetters,
+    mastered: totalMastered,
+    familiar: totalFamiliar,
+    learning: totalLearning,
+    struggling: totalStruggling,
+    notStarted: totalNotStarted,
+    masteryPercentage,
+    averageAccuracy,
+    level,
+  };
+};
+

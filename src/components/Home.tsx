@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { StrugglingLetters } from "./StrugglingLetters";
+import { ProgressOverview } from "./ProgressOverview";
 
 export const Home = () => {
   return (
@@ -70,6 +71,9 @@ export const Home = () => {
             </Link>
           </div>
         </section>
+
+        {/* Progress Overview Section */}
+        <ProgressOverview />
 
         {/* Need Practice Section - replaces Quiz section */}
         <StrugglingLetters />

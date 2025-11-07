@@ -83,28 +83,6 @@ export const StrugglingLetters = () => {
     });
   }, []);
 
-  if (strugglingLetters.length === 0) {
-    return (
-      <section className="mb-12">
-        <h2 className="mb-6 text-left text-2xl font-bold">Quiz</h2>
-        <Link to="/quiz" className="w-full">
-          <Button 
-            variant="default" 
-            size="lg" 
-            className="w-full text-lg py-8 flex-col h-auto"
-            style={{ 
-              backgroundColor: "var(--chart-5)",
-              borderColor: "var(--border)"
-            }}
-          >
-            <span className="thai-font text-5xl mb-2">📝</span>
-            <span>Start Quiz</span>
-          </Button>
-        </Link>
-      </section>
-    );
-  }
-
   // Group by quiz type and limit per type
   const groupedByType = strugglingLetters.reduce(
     (acc, letter) => {
