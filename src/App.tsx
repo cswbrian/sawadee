@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Consonants } from "@/components/Consonants";
 import { Numbers } from "@/components/Numbers";
@@ -20,6 +20,17 @@ const QuizContext = createContext<{
 });
 
 export const useQuizContext = () => useContext(QuizContext);
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function Navigation() {
   const location = useLocation();
@@ -99,6 +110,7 @@ function App() {
   return (
     <BrowserRouter basename={getBasename()}>
       <QuizContext.Provider value={{ isInQuiz, setIsInQuiz }}>
+        <ScrollToTop />
         <div className={`min-h-svh bg-background ${isInQuiz ? "" : "pb-16"}`}>
           <Routes>
             <Route path="/" element={<Home />} />

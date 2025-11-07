@@ -1,9 +1,7 @@
 import { getVowelPairs, specialVowels } from "@/data/vowels";
 import { motion } from "framer-motion";
 import { VowelCard } from "./VowelCard";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 
 export const Vowels = () => {
   const vowelPairs = getVowelPairs();
@@ -12,11 +10,7 @@ export const Vowels = () => {
     <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex items-center gap-4">
-          <Link to="/letters">
-            <Button variant="neutral" size="icon" className="rounded-base">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <BackButton />
           <h1 className="flex-1 text-center text-2xl">Vowels</h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>

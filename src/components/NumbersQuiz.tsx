@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useQuiz } from "@/hooks/useQuiz";
+import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
 
 const QUIZ_TYPE = "number" as const;
 
@@ -52,6 +53,19 @@ export const NumbersQuiz = () => {
     generateOptions,
     maxQuestions: 10,
   });
+
+  // Sort wrong answers by familiarity (least correct first)
+  // This must be at the top level to follow Rules of Hooks
+  const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
+  const sortedWrongAnswers = useMemo(() => {
+    if (wrongAnswers.length === 0) return [];
+    const wrongNumbers = wrongAnswers.map((r) => r.item);
+    const sorted = sortByFamiliarity(wrongNumbers, QUIZ_TYPE);
+    return sorted.map((number) => {
+      const result = wrongAnswers.find((r) => r.item.thai === number.thai);
+      return result!;
+    });
+  }, [wrongAnswers]);
 
   if (quizState === "selection") {
     return (
@@ -185,7 +199,6 @@ export const NumbersQuiz = () => {
   if (quizState === "end") {
     const correctCount = answerResults.filter((r) => r.isCorrect).length;
     const totalQuestions = selectedItems.length;
-    const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
 
     return (
       <div className="bg-background p-4 pb-8">
@@ -200,23 +213,31 @@ export const NumbersQuiz = () => {
                   </p>
                 </div>
 
-                {wrongAnswers.length > 0 && (
+                {sortedWrongAnswers.length > 0 && (
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-semibold">Wrong Answers:</h3>
                     <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
-                      {wrongAnswers.map((result, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col items-center gap-1"
-                        >
-                          <div className="text-3xl thai-font">
-                            {result.item.thai}
+                      {sortedWrongAnswers.map((result, index) => {
+                        const percentage = getFamiliarityPercentage(QUIZ_TYPE, result.item.thai);
+                        return (
+                          <div
+                            key={index}
+                            className="flex flex-col items-center gap-1"
+                          >
+                            <div className="text-3xl thai-font">
+                              {result.item.thai}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {result.item.number}
+                            </div>
+                            {percentage !== null && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {Math.round(percentage)}%
+                              </div>
+                            )}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {result.item.number}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

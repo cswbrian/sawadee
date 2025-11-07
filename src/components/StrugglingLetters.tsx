@@ -132,6 +132,16 @@ export const StrugglingLetters = () => {
     );
   });
 
+  const getLettersPagePath = (quizType: QuizType): string => {
+    const paths: Record<QuizType, string> = {
+      initial_consonant: "/letters/consonants?tab=familiarity",
+      final_consonant: "/letters/final-consonants?tab=familiarity",
+      vowel: "/letters/vowels?tab=familiarity",
+      number: "/letters/numbers?tab=familiarity",
+    };
+    return paths[quizType];
+  };
+
   return (
     <section className="mb-12">
       <h2 className="mb-6 text-left text-2xl font-bold">Need Practice</h2>
@@ -142,12 +152,20 @@ export const StrugglingLetters = () => {
               <h3 className="text-lg font-semibold">
                 {getQuizTypeLabel(quizType as QuizType)}
               </h3>
-              <Link
-                to={getQuizTypePath(quizType as QuizType)}
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Practice →
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  to={getLettersPagePath(quizType as QuizType)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  See All →
+                </Link>
+                <Link
+                  to={getQuizTypePath(quizType as QuizType)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Practice →
+                </Link>
+              </div>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
               {letters.map((letter) => (

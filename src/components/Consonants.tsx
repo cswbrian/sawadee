@@ -3,9 +3,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { ConsonantCard } from "./ConsonantCard";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useSearchParams } from "react-router-dom";
+import { BackButton } from "@/components/ui/back-button";
+import { useMemo } from "react";
+import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
 
 const getClassColor = (classType: ConsonantClass): string => {
   const colorMap: Record<ConsonantClass, string> = {
@@ -22,6 +23,9 @@ const getClassLabel = (classType: ConsonantClass): string => {
 
 
 export const Consonants = () => {
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "class";
+  
   // Group consonants by class
   const groupedByClass = consonants.reduce(
     (acc, consonant) => {
@@ -79,6 +83,44 @@ export const Consonants = () => {
     .map(Number)
     .sort((a, b) => a - b);
 
+  // Group consonants by familiarity
+  const groupedByFamiliarity = useMemo(() => {
+    const QUIZ_TYPE = "initial_consonant" as const;
+    const sorted = sortByFamiliarity(consonants, QUIZ_TYPE);
+    
+    const groups: Record<string, typeof consonants> = {
+      "0-30": [],
+      "30-50": [],
+      "50-70": [],
+      "70-90": [],
+      "90-100": [],
+      "no-data": [],
+    };
+    
+    sorted.forEach((consonant) => {
+      const percentage = getFamiliarityPercentage(QUIZ_TYPE, consonant.thai);
+      
+      if (percentage === null) {
+        groups["no-data"].push(consonant);
+      } else if (percentage < 30) {
+        groups["0-30"].push(consonant);
+      } else if (percentage < 50) {
+        groups["30-50"].push(consonant);
+      } else if (percentage < 70) {
+        groups["50-70"].push(consonant);
+      } else if (percentage < 90) {
+        groups["70-90"].push(consonant);
+      } else {
+        groups["90-100"].push(consonant);
+      }
+    });
+    
+    return groups;
+  }, []);
+
+  // Familiarity group order (least correct first)
+  const familiarityOrder = ["0-30", "30-50", "50-70", "70-90", "90-100", "no-data"];
+
   // Display order: high, mid, low
   const classOrder: ConsonantClass[] = ["high", "mid", "low"];
 
@@ -128,15 +170,11 @@ export const Consonants = () => {
     <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex items-center gap-4">
-          <Link to="/letters">
-            <Button variant="neutral" size="icon" className="rounded-base">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
+          <BackButton />
           <h1 className="flex-1 text-center text-2xl">Initial Consonants</h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
-        <Tabs defaultValue="class" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="mb-6 w-full">
             <TabsTrigger value="class" className="flex-1">
               Class
@@ -146,6 +184,9 @@ export const Consonants = () => {
             </TabsTrigger>
             <TabsTrigger value="popularity" className="flex-1">
               Popularity
+            </TabsTrigger>
+            <TabsTrigger value="familiarity" className="flex-1">
+              Familiarity
             </TabsTrigger>
           </TabsList>
 
@@ -208,6 +249,37 @@ export const Consonants = () => {
                     </motion.div>
                   </div>
                 ))}
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="familiarity" asChild>
+            <motion.div layout>
+              {renderLegend()}
+              {familiarityOrder.map((range) => {
+                const consonantsInRange = groupedByFamiliarity[range] || [];
+                if (consonantsInRange.length === 0) return null;
+                
+                const getRangeLabel = (range: string): string => {
+                  if (range === "no-data") return "No Data";
+                  return `${range}%`;
+                };
+                
+                return (
+                  <div key={range} className="mb-8">
+                    <h2 className="mb-4 text-lg font-semibold">
+                      {getRangeLabel(range)} ({consonantsInRange.length} consonants)
+                    </h2>
+                    <motion.div
+                      layout
+                      className="grid grid-cols-5 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8"
+                    >
+                      {consonantsInRange.map((consonant) =>
+                        renderCard(consonant)
+                      )}
+                    </motion.div>
+                  </div>
+                );
+              })}
             </motion.div>
           </TabsContent>
         </Tabs>

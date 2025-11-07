@@ -10,6 +10,7 @@ import { useQuizContext } from "@/App";
 import { ConsonantCard } from "./ConsonantCard";
 import { loadSettings } from "@/lib/settings";
 import { recordAnswer, selectWeighted } from "@/lib/stats";
+import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
 
 const QUIZ_TYPE = "initial_consonant" as const;
 
@@ -146,6 +147,19 @@ export const ReadingQuiz = () => {
       .map(Number)
       .sort((a, b) => a - b);
   }, [groupedByPopularity]);
+
+  // Sort wrong answers by familiarity (least correct first)
+  // This must be at the top level to follow Rules of Hooks
+  const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
+  const sortedWrongAnswers = useMemo(() => {
+    if (wrongAnswers.length === 0) return [];
+    const wrongConsonants = wrongAnswers.map((r) => r.consonant);
+    const sorted = sortByFamiliarity(wrongConsonants, QUIZ_TYPE);
+    return sorted.map((consonant) => {
+      const result = wrongAnswers.find((r) => r.consonant.thai === consonant.thai);
+      return result!;
+    });
+  }, [wrongAnswers]);
 
   const generateOptionsForQuestion = (correctConsonant: Consonant) => {
     const correctSound = correctConsonant.consonantSound || "";
@@ -577,7 +591,6 @@ export const ReadingQuiz = () => {
   if (quizState === "end") {
     const correctCount = answerResults.filter((r) => r.isCorrect).length;
     const totalQuestions = shuffledConsonants.length;
-    const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
 
     // Get selected groups labels for display
     const selectedGroups = quizTab === "class" ? selectedClassGroups : selectedPopularityGroups;
@@ -610,18 +623,27 @@ export const ReadingQuiz = () => {
                   </h3>
                 </div>
 
-                {wrongAnswers.length > 0 && (
+                {sortedWrongAnswers.length > 0 && (
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-semibold">Wrong Answers:</h3>
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-                      {wrongAnswers.map((result, index) => (
-                        <ConsonantCard
-                          key={index}
-                          consonant={result.consonant}
-                          showSound={true}
-                          showBadge={true}
-                        />
-                      ))}
+                      {sortedWrongAnswers.map((result, index) => {
+                        const percentage = getFamiliarityPercentage(QUIZ_TYPE, result.consonant.thai);
+                        return (
+                          <div key={index} className="flex flex-col items-center gap-1">
+                            <ConsonantCard
+                              consonant={result.consonant}
+                              showSound={true}
+                              showBadge={true}
+                            />
+                            {percentage !== null && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {Math.round(percentage)}%
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
