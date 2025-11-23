@@ -1,0 +1,13 @@
+# robots.txt for Sawadee - Learn Thai Language App
+# https://sawadee.monsoonclub.co/
+
+User-agent: *
+Allow: /
+
+# Disallow admin or private paths (if any)
+# Disallow: /admin/
+# Disallow: /api/
+
+# Sitemap location
+Sitemap: https://sawadee.monsoonclub.co/sitemap.xml
+

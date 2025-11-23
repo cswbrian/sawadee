@@ -5,20 +5,21 @@ import { defineConfig, loadEnv } from "vite"
 import type { Plugin } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
-// Plugin to inject Google Analytics script tags
-function googleAnalyticsPlugin(mode: string): Plugin {
+// Plugin to inject Google Analytics script tags and Search Console verification
+function seoPlugin(mode: string): Plugin {
   return {
-    name: "google-analytics",
+    name: "seo-plugin",
     transformIndexHtml(html) {
       // Load env vars using Vite's loadEnv
       const env = loadEnv(mode, process.cwd(), '')
       const gaId = env.VITE_GA_MEASUREMENT_ID
+      const searchConsoleVerification = env.VITE_SEARCH_CONSOLE_VERIFICATION
       
-      if (!gaId) {
-        return html
-      }
-
-      const gaScripts = `
+      let additionalTags = ''
+      
+      // Inject Google Analytics if available
+      if (gaId) {
+        additionalTags += `
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>
     <script>
@@ -27,9 +28,21 @@ function googleAnalyticsPlugin(mode: string): Plugin {
       gtag('js', new Date());
       gtag('config', '${gaId}');
     </script>`
+      }
+      
+      // Inject Google Search Console verification if available
+      if (searchConsoleVerification) {
+        additionalTags += `
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="${searchConsoleVerification}" />`
+      }
+      
+      if (!additionalTags) {
+        return html
+      }
 
       // Insert before closing </head> tag
-      return html.replace("</head>", `${gaScripts}\n  </head>`)
+      return html.replace("</head>", `${additionalTags}\n  </head>`)
     },
   }
 }
@@ -47,7 +60,7 @@ export default defineConfig(({ command, mode }) => {
   plugins: [
     react(),
     tailwindcss(),
-    googleAnalyticsPlugin(mode),
+    seoPlugin(mode),
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
