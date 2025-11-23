@@ -1,16 +1,19 @@
 import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import { defineConfig, loadEnv } from "vite"
 import type { Plugin } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 // Plugin to inject Google Analytics script tags
-function googleAnalyticsPlugin(): Plugin {
+function googleAnalyticsPlugin(mode: string): Plugin {
   return {
     name: "google-analytics",
     transformIndexHtml(html) {
-      const gaId = process.env.VITE_GA_MEASUREMENT_ID
+      // Load env vars using Vite's loadEnv
+      const env = loadEnv(mode, process.cwd(), '')
+      const gaId = env.VITE_GA_MEASUREMENT_ID
+      
       if (!gaId) {
         return html
       }
@@ -32,7 +35,7 @@ function googleAnalyticsPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   // Use relative base path to work with both GitHub Pages URL and custom domain
   // This allows the app to work at both:
   // - https://cswbrian.github.io/sawadee/ (GitHub Pages)
@@ -44,7 +47,7 @@ export default defineConfig(({ command }) => {
   plugins: [
     react(),
     tailwindcss(),
-    googleAnalyticsPlugin(),
+    googleAnalyticsPlugin(mode),
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
