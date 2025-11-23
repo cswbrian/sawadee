@@ -251,6 +251,13 @@ export const ReadingQuiz = () => {
 
   const familiarityOrder = ["0-30", "30-50", "50-70", "70-90", "90-100", "no-data"];
 
+  // Filter familiarity order to only include groups with items
+  const filteredFamiliarityOrder = useMemo(() => {
+    return familiarityOrder.filter((range) => {
+      return groupedByFamiliarity[range] && groupedByFamiliarity[range].length > 0;
+    });
+  }, [groupedByFamiliarity]);
+
   // Initialize default group keys (computed once)
   const defaultGroupKeys = useMemo(() => {
     const classGroupKeys = new Set<string>();
@@ -272,7 +279,7 @@ export const ReadingQuiz = () => {
     });
 
     const familiarityGroupKeys = new Set<string>();
-    familiarityOrder.forEach((range) => {
+    filteredFamiliarityOrder.forEach((range) => {
       familiarityGroupKeys.add(groupKeyToString({ type: "familiarity", value: range }));
     });
 
@@ -281,7 +288,7 @@ export const ReadingQuiz = () => {
       popularity: popularityGroupKeys,
       familiarity: familiarityGroupKeys,
     };
-  }, []);
+  }, [filteredFamiliarityOrder]);
 
   // Initialize group configurations
   const groupConfigs = useMemo((): Record<TabType, GroupConfig> => {
@@ -318,14 +325,14 @@ export const ReadingQuiz = () => {
         label: "Familiarity",
         getGroupKeys: () => defaultGroupKeys.familiarity,
         getGroupedConsonants: () => groupedByFamiliarity,
-        getGroupOrder: () => familiarityOrder,
+        getGroupOrder: () => filteredFamiliarityOrder,
         getGroupLabel: (value) => {
           const range = value as string;
           return range === "no-data" ? "No Data" : `${range}%`;
         },
       },
     };
-  }, [groupedByClass, groupedByPopularity, groupedByFamiliarity, sortedPopularities, defaultGroupKeys]);
+  }, [groupedByClass, groupedByPopularity, groupedByFamiliarity, sortedPopularities, defaultGroupKeys, filteredFamiliarityOrder]);
 
   // Initialize selected groups with all groups selected by default
   const [selectedGroups, setSelectedGroups] = useState<Record<TabType, Set<string>>>({
