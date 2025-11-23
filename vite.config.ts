@@ -21,6 +21,8 @@ export default defineConfig(({ command }) => {
       registerType: "autoUpdate",
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Exclude Google Analytics from caching to ensure accurate tracking
+        navigateFallbackDenylist: [/^\/_/, /^\/api/, /\/__/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -48,6 +50,14 @@ export default defineConfig(({ command }) => {
               cacheableResponse: {
                 statuses: [0, 200],
               },
+            },
+          },
+          // Explicitly bypass cache for Google Analytics requests
+          {
+            urlPattern: /^https:\/\/(www\.)?(googletagmanager\.com|google-analytics\.com)\/.*/i,
+            handler: "NetworkOnly",
+            options: {
+              cacheName: "ga-bypass",
             },
           },
         ],
