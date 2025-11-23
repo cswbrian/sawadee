@@ -80,6 +80,22 @@ const getConsonantsFromGroup = (
   }
 };
 
+// Helper to get familiarity range label with learning state
+const getFamiliarityRangeLabel = (range: string): string => {
+  if (range === "no-data") return "No Data";
+  
+  // Map ranges to learning state labels
+  const rangeLabels: Record<string, string> = {
+    "0-30": "Struggling (0-30%)",
+    "30-50": "Struggling (30-50%)",
+    "50-70": "Learning (50-70%)",
+    "70-90": "Familiar (70-90%)",
+    "90-100": "Mastered (90-100%)",
+  };
+  
+  return rangeLabels[range] || `${range}%`;
+};
+
 // Helper to get group label for display
 const getGroupDisplayLabel = (group: GroupKey): string => {
   if (group.type === "class") {
@@ -87,8 +103,7 @@ const getGroupDisplayLabel = (group: GroupKey): string => {
   } else if (group.type === "popularity") {
     return `Popularity ${group.value === 999 ? "Unknown" : group.value}`;
   } else {
-    const range = group.value as string;
-    return range === "no-data" ? "No Data" : `${range}%`;
+    return getFamiliarityRangeLabel(group.value as string);
   }
 };
 
@@ -326,10 +341,7 @@ export const ReadingQuiz = () => {
         getGroupKeys: () => defaultGroupKeys.familiarity,
         getGroupedConsonants: () => groupedByFamiliarity,
         getGroupOrder: () => filteredFamiliarityOrder,
-        getGroupLabel: (value) => {
-          const range = value as string;
-          return range === "no-data" ? "No Data" : `${range}%`;
-        },
+        getGroupLabel: (value) => getFamiliarityRangeLabel(value as string),
       },
     };
   }, [groupedByClass, groupedByPopularity, groupedByFamiliarity, sortedPopularities, defaultGroupKeys, filteredFamiliarityOrder]);
