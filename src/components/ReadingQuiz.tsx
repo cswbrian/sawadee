@@ -28,10 +28,21 @@ const getClassLabel = (classType: ConsonantClass): string => {
 };
 
 type QuizState = "selection" | "quiz" | "end";
+type TabType = "class" | "popularity" | "familiarity";
 
 type GroupKey = {
-  type: "class" | "popularity" | "familiarity";
+  type: TabType;
   value: ConsonantClass | number | string;
+};
+
+type GroupConfig = {
+  type: TabType;
+  label: string;
+  getGroupKeys: () => Set<string>;
+  getGroupedConsonants: () => Record<string, Consonant[]>;
+  getGroupOrder: () => string[];
+  getGroupLabel: (value: ConsonantClass | number | string) => string;
+  renderGroupBadge?: (value: ConsonantClass | number | string) => React.ReactNode;
 };
 
 const groupKeyToString = (group: GroupKey): string => {
@@ -40,7 +51,7 @@ const groupKeyToString = (group: GroupKey): string => {
 
 const stringToGroupKey = (str: string): GroupKey => {
   const parts = str.split("-");
-  const type = parts[0] as "class" | "popularity" | "familiarity";
+  const type = parts[0] as TabType;
   
   if (type === "class") {
     return { type, value: parts[1] as ConsonantClass };
@@ -53,50 +64,88 @@ const stringToGroupKey = (str: string): GroupKey => {
   }
 };
 
+// Helper to get consonants from a group key
+const getConsonantsFromGroup = (
+  group: GroupKey,
+  groupedByClass: Record<ConsonantClass, Consonant[]>,
+  groupedByPopularity: Record<number, Consonant[]>,
+  groupedByFamiliarity: Record<string, Consonant[]>
+): Consonant[] => {
+  if (group.type === "class") {
+    return groupedByClass[group.value as ConsonantClass] || [];
+  } else if (group.type === "popularity") {
+    return groupedByPopularity[group.value as number] || [];
+  } else {
+    return groupedByFamiliarity[group.value as string] || [];
+  }
+};
+
+// Helper to get group label for display
+const getGroupDisplayLabel = (group: GroupKey): string => {
+  if (group.type === "class") {
+    return getClassLabel(group.value as ConsonantClass);
+  } else if (group.type === "popularity") {
+    return `Popularity ${group.value === 999 ? "Unknown" : group.value}`;
+  } else {
+    const range = group.value as string;
+    return range === "no-data" ? "No Data" : `${range}%`;
+  }
+};
+
+// Reusable Group Card Component
+type GroupCardProps = {
+  groupKey: string;
+  groupValue: ConsonantClass | number | string;
+  groupType: TabType;
+  isSelected: boolean;
+  count: number;
+  label: string;
+  onToggle: () => void;
+  renderBadge?: () => React.ReactNode;
+};
+
+const GroupCard = ({
+  groupKey,
+  isSelected,
+  count,
+  label,
+  onToggle,
+  renderBadge,
+}: GroupCardProps) => {
+  return (
+    <Card
+      key={groupKey}
+      className={`p-4 cursor-pointer transition-colors ${
+        isSelected ? "bg-secondary-background" : ""
+      }`}
+      onClick={onToggle}
+    >
+      <CardContent className="p-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={onToggle}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {renderBadge ? renderBadge() : (
+              <span className="font-semibold">{label}</span>
+            )}
+            <span className="text-sm text-muted-foreground">
+              {count} consonants
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export const ReadingQuiz = () => {
-  // Initialize with all class groups selected by default
-  const getAllClassGroupKeys = useMemo(() => {
-    const keys = new Set<string>();
-    (["high", "mid", "low"] as ConsonantClass[]).forEach((classType) => {
-      keys.add(groupKeyToString({ type: "class", value: classType }));
-    });
-    return keys;
-  }, []);
-
-  // Initialize with all popularity groups selected by default
-  const getAllPopularityGroupKeys = useMemo(() => {
-    const keys = new Set<string>();
-    const allPopularities = Array.from(
-      new Set(
-        consonants.map((c) => {
-          const popularity = c.popularity ?? 999;
-          return popularity === 999 ? 999 : Math.floor(popularity);
-        })
-      )
-    ).sort((a, b) => a - b);
-    allPopularities.forEach((popularity) => {
-      keys.add(groupKeyToString({ type: "popularity", value: popularity }));
-    });
-    return keys;
-  }, []);
-
-  // Initialize with all familiarity groups selected by default
-  const getAllFamiliarityGroupKeys = useMemo(() => {
-    const keys = new Set<string>();
-    const familiarityRanges = ["0-30", "30-50", "50-70", "70-90", "90-100", "no-data"];
-    familiarityRanges.forEach((range) => {
-      keys.add(groupKeyToString({ type: "familiarity", value: range }));
-    });
-    return keys;
-  }, []);
-
   const { setIsInQuiz } = useQuizContext();
   const [quizState, setQuizState] = useState<QuizState>("selection");
-  const [selectedClassGroups, setSelectedClassGroups] = useState<Set<string>>(getAllClassGroupKeys);
-  const [selectedPopularityGroups, setSelectedPopularityGroups] = useState<Set<string>>(getAllPopularityGroupKeys);
-  const [selectedFamiliarityGroups, setSelectedFamiliarityGroups] = useState<Set<string>>(getAllFamiliarityGroupKeys);
-  const [activeTab, setActiveTab] = useState<"class" | "popularity" | "familiarity">("class");
-  const [quizTab, setQuizTab] = useState<"class" | "popularity" | "familiarity">("class");
+  const [activeTab, setActiveTab] = useState<TabType>("class");
+  const [quizTab, setQuizTab] = useState<TabType>("class");
   const [shuffledConsonants, setShuffledConsonants] = useState<Consonant[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -202,6 +251,98 @@ export const ReadingQuiz = () => {
 
   const familiarityOrder = ["0-30", "30-50", "50-70", "70-90", "90-100", "no-data"];
 
+  // Initialize default group keys (computed once)
+  const defaultGroupKeys = useMemo(() => {
+    const classGroupKeys = new Set<string>();
+    (["high", "mid", "low"] as ConsonantClass[]).forEach((classType) => {
+      classGroupKeys.add(groupKeyToString({ type: "class", value: classType }));
+    });
+
+    const popularityGroupKeys = new Set<string>();
+    const allPopularities = Array.from(
+      new Set(
+        consonants.map((c) => {
+          const popularity = c.popularity ?? 999;
+          return popularity === 999 ? 999 : Math.floor(popularity);
+        })
+      )
+    ).sort((a, b) => a - b);
+    allPopularities.forEach((popularity) => {
+      popularityGroupKeys.add(groupKeyToString({ type: "popularity", value: popularity }));
+    });
+
+    const familiarityGroupKeys = new Set<string>();
+    familiarityOrder.forEach((range) => {
+      familiarityGroupKeys.add(groupKeyToString({ type: "familiarity", value: range }));
+    });
+
+    return {
+      class: classGroupKeys,
+      popularity: popularityGroupKeys,
+      familiarity: familiarityGroupKeys,
+    };
+  }, []);
+
+  // Initialize group configurations
+  const groupConfigs = useMemo((): Record<TabType, GroupConfig> => {
+    return {
+      class: {
+        type: "class",
+        label: "Class",
+        getGroupKeys: () => defaultGroupKeys.class,
+        getGroupedConsonants: () => groupedByClass,
+        getGroupOrder: () => ["high", "mid", "low"],
+        getGroupLabel: (value) => getClassLabel(value as ConsonantClass),
+        renderGroupBadge: (value) => (
+          <Badge
+            className="text-xs"
+            style={{
+              backgroundColor: getClassColor(value as ConsonantClass),
+              color: "var(--foreground)",
+            }}
+          >
+            {getClassLabel(value as ConsonantClass)}
+          </Badge>
+        ),
+      },
+      popularity: {
+        type: "popularity",
+        label: "Popularity",
+        getGroupKeys: () => defaultGroupKeys.popularity,
+        getGroupedConsonants: () => groupedByPopularity,
+        getGroupOrder: () => sortedPopularities.map(String),
+        getGroupLabel: (value) => `Popularity ${value === 999 ? "Unknown" : value}`,
+      },
+      familiarity: {
+        type: "familiarity",
+        label: "Familiarity",
+        getGroupKeys: () => defaultGroupKeys.familiarity,
+        getGroupedConsonants: () => groupedByFamiliarity,
+        getGroupOrder: () => familiarityOrder,
+        getGroupLabel: (value) => {
+          const range = value as string;
+          return range === "no-data" ? "No Data" : `${range}%`;
+        },
+      },
+    };
+  }, [groupedByClass, groupedByPopularity, groupedByFamiliarity, sortedPopularities, defaultGroupKeys]);
+
+  // Initialize selected groups with all groups selected by default
+  const [selectedGroups, setSelectedGroups] = useState<Record<TabType, Set<string>>>({
+    class: new Set(),
+    popularity: new Set(),
+    familiarity: new Set(),
+  });
+
+  // Populate selected groups with defaults on mount
+  useEffect(() => {
+    setSelectedGroups({
+      class: new Set(defaultGroupKeys.class),
+      popularity: new Set(defaultGroupKeys.popularity),
+      familiarity: new Set(defaultGroupKeys.familiarity),
+    });
+  }, [defaultGroupKeys]);
+
   // Sort wrong answers by familiarity (least correct first)
   // This must be at the top level to follow Rules of Hooks
   const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
@@ -239,105 +380,89 @@ export const ReadingQuiz = () => {
     setOptions(allOptions);
   };
 
-  const handleGroupToggle = (type: "class" | "popularity" | "familiarity", value: ConsonantClass | number | string) => {
+  // Unified group toggle handler
+  const handleGroupToggle = (type: TabType, value: ConsonantClass | number | string) => {
     const groupKey = groupKeyToString({ type, value });
-    if (type === "class") {
-      setSelectedClassGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(groupKey)) {
-          next.delete(groupKey);
-        } else {
-          next.add(groupKey);
-        }
-        return next;
-      });
-    } else if (type === "popularity") {
-      setSelectedPopularityGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(groupKey)) {
-          next.delete(groupKey);
-        } else {
-          next.add(groupKey);
-        }
-        return next;
-      });
-    } else {
-      setSelectedFamiliarityGroups((prev) => {
-        const next = new Set(prev);
-        if (next.has(groupKey)) {
-          next.delete(groupKey);
-        } else {
-          next.add(groupKey);
-        }
-        return next;
-      });
-    }
+    setSelectedGroups((prev) => {
+      const next = { ...prev };
+      const currentSet = new Set(next[type]);
+      if (currentSet.has(groupKey)) {
+        currentSet.delete(groupKey);
+      } else {
+        currentSet.add(groupKey);
+      }
+      next[type] = currentSet;
+      return next;
+    });
   };
 
   const handleClearAll = () => {
-    if (activeTab === "class") {
-      setSelectedClassGroups(new Set());
-    } else if (activeTab === "popularity") {
-      setSelectedPopularityGroups(new Set());
-    } else {
-      setSelectedFamiliarityGroups(new Set());
-    }
+    setSelectedGroups((prev) => ({
+      ...prev,
+      [activeTab]: new Set<string>(),
+    }));
   };
 
-  const handleStartQuiz = () => {
-    // Use selected groups from the active tab
-    const selectedGroups = 
-      activeTab === "class" 
-        ? selectedClassGroups 
-        : activeTab === "popularity"
-        ? selectedPopularityGroups
-        : selectedFamiliarityGroups;
-    if (selectedGroups.size === 0) return;
+  // Get selected groups for a specific tab
+  const getSelectedGroupsForTab = (tab: TabType): Set<string> => {
+    return selectedGroups[tab];
+  };
 
-    // Combine consonants from all selected groups in the active tab
+  // Get consonants from selected groups
+  const getConsonantsFromSelectedGroups = (tab: TabType): Consonant[] => {
+    const selectedGroupKeys = getSelectedGroupsForTab(tab);
     const allConsonants: Consonant[] = [];
-    selectedGroups.forEach((groupKeyStr) => {
+    
+    selectedGroupKeys.forEach((groupKeyStr) => {
       const group = stringToGroupKey(groupKeyStr);
-      let groupConsonants: Consonant[] = [];
-      if (group.type === "class") {
-        groupConsonants = groupedByClass[group.value as ConsonantClass] || [];
-      } else if (group.type === "popularity") {
-        groupConsonants = groupedByPopularity[group.value as number] || [];
-      } else {
-        groupConsonants = groupedByFamiliarity[group.value as string] || [];
-      }
+      const groupConsonants = getConsonantsFromGroup(
+        group,
+        groupedByClass,
+        groupedByPopularity,
+        groupedByFamiliarity
+      );
       allConsonants.push(...groupConsonants);
     });
 
-    // Remove duplicates (in case a consonant appears in multiple groups)
-    const uniqueConsonants = Array.from(
+    // Remove duplicates
+    return Array.from(
       new Map(allConsonants.map((c) => [c.thai, c])).values()
     );
+  };
 
-    // Check if adaptive learning is enabled
+  // Prepare quiz consonants (shuffled selection)
+  const prepareQuizConsonants = (tab: TabType): Consonant[] => {
+    const uniqueConsonants = getConsonantsFromSelectedGroups(tab);
+    if (uniqueConsonants.length === 0) return [];
+
     const settings = loadSettings();
     let shuffled: Consonant[];
     
     if (settings.adaptiveLearning) {
-      // Use weighted selection based on user performance
       shuffled = selectWeighted(QUIZ_TYPE, uniqueConsonants, 10);
-      // Shuffle the final selection
       shuffled = shuffled.sort(() => Math.random() - 0.5);
     } else {
-      // Regular random selection
       shuffled = [...uniqueConsonants]
         .sort(() => Math.random() - 0.5)
         .slice(0, 10);
     }
+    
+    return shuffled;
+  };
+
+  const handleStartQuiz = () => {
+    const selectedGroupKeys = getSelectedGroupsForTab(activeTab);
+    if (selectedGroupKeys.size === 0) return;
+
+    const shuffled = prepareQuizConsonants(activeTab);
+    if (shuffled.length === 0) return;
 
     setQuizTab(activeTab);
     setShuffledConsonants(shuffled);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
-    if (shuffled.length > 0) {
-      generateOptionsForQuestion(shuffled[0]);
-    }
+    generateOptionsForQuestion(shuffled[0]);
     setQuizState("quiz");
   };
 
@@ -376,58 +501,14 @@ export const ReadingQuiz = () => {
   };
 
   const handleRestart = () => {
-    // Use selected groups from the tab that was used to start the quiz
-    const selectedGroups = 
-      quizTab === "class" 
-        ? selectedClassGroups 
-        : quizTab === "popularity"
-        ? selectedPopularityGroups
-        : selectedFamiliarityGroups;
-    if (selectedGroups.size === 0) return;
-
-    // Combine consonants from all selected groups in the active tab
-    const allConsonants: Consonant[] = [];
-    selectedGroups.forEach((groupKeyStr) => {
-      const group = stringToGroupKey(groupKeyStr);
-      let groupConsonants: Consonant[] = [];
-      if (group.type === "class") {
-        groupConsonants = groupedByClass[group.value as ConsonantClass] || [];
-      } else if (group.type === "popularity") {
-        groupConsonants = groupedByPopularity[group.value as number] || [];
-      } else {
-        groupConsonants = groupedByFamiliarity[group.value as string] || [];
-      }
-      allConsonants.push(...groupConsonants);
-    });
-
-    // Remove duplicates
-    const uniqueConsonants = Array.from(
-      new Map(allConsonants.map((c) => [c.thai, c])).values()
-    );
-
-    // Check if adaptive learning is enabled
-    const settings = loadSettings();
-    let shuffled: Consonant[];
-    
-    if (settings.adaptiveLearning) {
-      // Use weighted selection based on user performance
-      shuffled = selectWeighted(QUIZ_TYPE, uniqueConsonants, 10);
-      // Shuffle the final selection
-      shuffled = shuffled.sort(() => Math.random() - 0.5);
-    } else {
-      // Regular random selection
-      shuffled = [...uniqueConsonants]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 10);
-    }
+    const shuffled = prepareQuizConsonants(quizTab);
+    if (shuffled.length === 0) return;
     
     setShuffledConsonants(shuffled);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
-    if (shuffled.length > 0) {
-      generateOptionsForQuestion(shuffled[0]);
-    }
+    generateOptionsForQuestion(shuffled[0]);
     setQuizState("quiz");
   };
 
@@ -474,123 +555,48 @@ export const ReadingQuiz = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="class" asChild>
-              <div className="space-y-4">
-                {(["high", "mid", "low"] as ConsonantClass[]).map((classType) => {
-                  const groupKey = groupKeyToString({ type: "class", value: classType });
-                  const isSelected = selectedClassGroups.has(groupKey);
-                  return (
-                    <Card
-                      key={classType}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        isSelected ? "bg-secondary-background" : ""
-                      }`}
-                      onClick={() => handleGroupToggle("class", classType)}
-                    >
-                      <CardContent className="p-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => handleGroupToggle("class", classType)}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <Badge
-                              className="text-xs"
-                              style={{
-                                backgroundColor: getClassColor(classType),
-                                color: "var(--foreground)",
-                              }}
-                            >
-                              {getClassLabel(classType)}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {groupedByClass[classType]?.length || 0} consonants
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="popularity" asChild>
-              <div className="space-y-4">
-                {sortedPopularities.map((popularity) => {
-                  const groupKey = groupKeyToString({ type: "popularity", value: popularity });
-                  const isSelected = selectedPopularityGroups.has(groupKey);
-                  return (
-                    <Card
-                      key={popularity}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        isSelected ? "bg-secondary-background" : ""
-                      }`}
-                      onClick={() => handleGroupToggle("popularity", popularity)}
-                    >
-                      <CardContent className="p-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => handleGroupToggle("popularity", popularity)}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <span className="font-semibold">
-                              Popularity {popularity === 999 ? "Unknown" : popularity}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {groupedByPopularity[popularity]?.length || 0} consonants
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="familiarity" asChild>
-              <div className="space-y-4">
-                {familiarityOrder.map((range) => {
-                  const groupKey = groupKeyToString({ type: "familiarity", value: range });
-                  const isSelected = selectedFamiliarityGroups.has(groupKey);
-                  const getFamiliarityLabel = (range: string): string => {
-                    if (range === "no-data") return "No Data";
-                    return `${range}%`;
-                  };
-                  return (
-                    <Card
-                      key={range}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        isSelected ? "bg-secondary-background" : ""
-                      }`}
-                      onClick={() => handleGroupToggle("familiarity", range)}
-                    >
-                      <CardContent className="p-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => handleGroupToggle("familiarity", range)}
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <span className="font-semibold">
-                              {getFamiliarityLabel(range)}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {groupedByFamiliarity[range]?.length || 0} consonants
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
+            {(Object.keys(groupConfigs) as TabType[]).map((tabType) => {
+              const config = groupConfigs[tabType];
+              const groupedConsonants = config.getGroupedConsonants();
+              const groupOrder = config.getGroupOrder();
+              
+              return (
+                <TabsContent key={tabType} value={tabType} asChild>
+                  <div className="space-y-4">
+                    {groupOrder.map((groupValueStr) => {
+                      // Convert string back to proper type
+                      const groupValue = tabType === "class" 
+                        ? groupValueStr as ConsonantClass
+                        : tabType === "popularity"
+                        ? Number(groupValueStr)
+                        : groupValueStr;
+                      
+                      const groupKey = groupKeyToString({ type: tabType, value: groupValue });
+                      const isSelected = getSelectedGroupsForTab(tabType).has(groupKey);
+                      const count = tabType === "class"
+                        ? (groupedConsonants as Record<ConsonantClass, Consonant[]>)[groupValue as ConsonantClass]?.length || 0
+                        : tabType === "popularity"
+                        ? (groupedConsonants as Record<number, Consonant[]>)[groupValue as number]?.length || 0
+                        : (groupedConsonants as Record<string, Consonant[]>)[groupValue as string]?.length || 0;
+                      
+                      return (
+                        <GroupCard
+                          key={groupKey}
+                          groupKey={groupKey}
+                          groupValue={groupValue}
+                          groupType={tabType}
+                          isSelected={isSelected}
+                          count={count}
+                          label={config.getGroupLabel(groupValue)}
+                          onToggle={() => handleGroupToggle(tabType, groupValue)}
+                          renderBadge={config.renderGroupBadge ? () => config.renderGroupBadge!(groupValue) : undefined}
+                        />
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+              );
+            })}
           </Tabs>
 
           <div className="mt-8 flex flex-col items-center gap-4">
@@ -598,30 +604,16 @@ export const ReadingQuiz = () => {
               variant="default"
               size="lg"
               onClick={handleStartQuiz}
-              disabled={
-                (activeTab === "class" 
-                  ? selectedClassGroups 
-                  : activeTab === "popularity"
-                  ? selectedPopularityGroups
-                  : selectedFamiliarityGroups).size === 0
-              }
+              disabled={getSelectedGroupsForTab(activeTab).size === 0}
               className="w-full max-w-md"
             >
               Start Quiz
             </Button>
-            {(() => {
-              const selectedGroups = 
-                activeTab === "class" 
-                  ? selectedClassGroups 
-                  : activeTab === "popularity"
-                  ? selectedPopularityGroups
-                  : selectedFamiliarityGroups;
-              return selectedGroups.size > 0 ? (
-                <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full max-w-md">
-                  Clear All
-                </Button>
-              ) : null;
-            })()}
+            {getSelectedGroupsForTab(activeTab).size > 0 && (
+              <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full max-w-md">
+                Clear All
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -734,22 +726,10 @@ export const ReadingQuiz = () => {
     const totalQuestions = shuffledConsonants.length;
 
     // Get selected groups labels for display
-    const selectedGroups = 
-      quizTab === "class" 
-        ? selectedClassGroups 
-        : quizTab === "popularity"
-        ? selectedPopularityGroups
-        : selectedFamiliarityGroups;
-    const selectedGroupLabels = Array.from(selectedGroups).map((groupKeyStr) => {
+    const selectedGroupKeys = getSelectedGroupsForTab(quizTab);
+    const selectedGroupLabels = Array.from(selectedGroupKeys).map((groupKeyStr) => {
       const group = stringToGroupKey(groupKeyStr);
-      if (group.type === "class") {
-        return getClassLabel(group.value as ConsonantClass);
-      } else if (group.type === "popularity") {
-        return `Popularity ${group.value === 999 ? "Unknown" : group.value}`;
-      } else {
-        const range = group.value as string;
-        return range === "no-data" ? "No Data" : `${range}%`;
-      }
+      return getGroupDisplayLabel(group);
     });
 
     return (
