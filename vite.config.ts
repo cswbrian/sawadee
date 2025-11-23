@@ -2,7 +2,34 @@ import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
+import type { Plugin } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
+
+// Plugin to inject Google Analytics script tags
+function googleAnalyticsPlugin(): Plugin {
+  return {
+    name: "google-analytics",
+    transformIndexHtml(html) {
+      const gaId = process.env.VITE_GA_MEASUREMENT_ID
+      if (!gaId) {
+        return html
+      }
+
+      const gaScripts = `
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${gaId}');
+    </script>`
+
+      // Insert before closing </head> tag
+      return html.replace("</head>", `${gaScripts}\n  </head>`)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
@@ -17,6 +44,7 @@ export default defineConfig(({ command }) => {
   plugins: [
     react(),
     tailwindcss(),
+    googleAnalyticsPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
