@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { loadStats, getCorrectPercentage, type QuizType } from "@/lib/stats";
 import { consonants } from "@/data/consonants";
+import { vowels, specialVowels } from "@/data/vowels";
 import { numbers } from "@/data/numbers";
 
 interface StrugglingLetter {
@@ -10,7 +11,7 @@ interface StrugglingLetter {
   quizType: QuizType;
   correctRate: number;
   attempts: number;
-  value: string; // consonantSound for consonants, number.toString() for numbers
+  value: string; // consonantSound for consonants, sound for vowels, number.toString() for numbers
 }
 
 const getQuizTypeLabel = (quizType: QuizType): string => {
@@ -50,6 +51,25 @@ export const StrugglingLetters = () => {
             correctRate: percentage,
             attempts: stats.attempts,
             value: consonant.consonantSound || "",
+          });
+        }
+      }
+    });
+
+    // Check vowels (including special vowels)
+    const vowelStats = loadStats("vowel");
+    const allVowels = [...vowels, ...specialVowels];
+    allVowels.forEach((vowel) => {
+      const stats = vowelStats[vowel.thai];
+      if (stats) {
+        const percentage = getCorrectPercentage(stats);
+        if (percentage !== null && percentage < 70) {
+          allStruggling.push({
+            thai: vowel.thai,
+            quizType: "vowel",
+            correctRate: percentage,
+            attempts: stats.attempts,
+            value: vowel.sound || "",
           });
         }
       }
@@ -97,6 +117,7 @@ export const StrugglingLetters = () => {
   // Apply limits per quiz type
   const getMaxCards = (quizType: QuizType): number => {
     if (quizType === "initial_consonant") return 9;
+    if (quizType === "vowel") return 6;
     if (quizType === "number") return 3;
     return 6; // Default for other types
   };

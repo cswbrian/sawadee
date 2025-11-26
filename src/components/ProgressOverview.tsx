@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { getOverallStats, getCategoryStats, type CategoryStats } from "@/lib/stats";
 import { consonants } from "@/data/consonants";
+import { vowels } from "@/data/vowels";
 import { numbers } from "@/data/numbers";
 
 const getLevelColor = (level: string): string => {
@@ -65,14 +66,15 @@ const CategoryCard = ({ title, stats, color }: CategoryCardProps) => {
 };
 
 export const ProgressOverview = () => {
-  // Hide final consonants and vowels until quizzes are ready
+  // Hide final consonants until quizzes are ready
   const overallStats = useMemo(() => 
-    getOverallStats(consonants, [], [], numbers),
+    getOverallStats(consonants, [], vowels, numbers),
     []
   );
   
   const categoryStats = useMemo(() => ({
     consonants: getCategoryStats("initial_consonant", consonants),
+    vowels: getCategoryStats("vowel", vowels),
     numbers: getCategoryStats("number", numbers),
   }), []);
 
@@ -112,17 +114,11 @@ export const ProgressOverview = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="text-sm">
             <div>
               <div className="text-muted-foreground">Average Accuracy</div>
               <div className="text-xl font-bold">
                 {Math.round(overallStats.averageAccuracy)}%
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Total Attempts</div>
-              <div className="text-xl font-bold">
-                {overallStats.totalLetters - overallStats.notStarted}
               </div>
             </div>
           </div>
@@ -164,11 +160,16 @@ export const ProgressOverview = () => {
       </Card>
 
       {/* Category Breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <CategoryCard 
           title="Initial Consonants" 
           stats={categoryStats.consonants}
           color="var(--chart-2)"
+        />
+        <CategoryCard 
+          title="Vowels" 
+          stats={categoryStats.vowels}
+          color="var(--chart-3)"
         />
         <CategoryCard 
           title="Numbers" 
