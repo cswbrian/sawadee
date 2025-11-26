@@ -72,6 +72,40 @@ export const Home = () => {
           </div>
         </section>
 
+        {/* Thai Learning Resources Section */}
+        <section className="mb-12">
+          <h2 className="mb-4 text-left text-2xl font-bold">Thai Learning Resources</h2>
+          <div className="flex flex-col gap-2">
+            <a 
+              href="https://www.activethai.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-foreground underline hover:text-chart-2 transition-colors inline-flex items-center gap-1 w-fit"
+            >
+              Active Thai
+              <span className="text-xs">↗</span>
+            </a>
+            <a 
+              href="https://funtolearnthai.com/beginners.php" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-foreground underline hover:text-chart-2 transition-colors inline-flex items-center gap-1 w-fit"
+            >
+              Fun to Learn Thai
+              <span className="text-xs">↗</span>
+            </a>
+            <a 
+              href="https://thai-notes.com/index.html" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-foreground underline hover:text-chart-2 transition-colors inline-flex items-center gap-1 w-fit"
+            >
+              Thai Notes
+              <span className="text-xs">↗</span>
+            </a>
+          </div>
+        </section>
+
         {/* Progress Overview Section */}
         <ProgressOverview />
 
