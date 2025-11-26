@@ -43,22 +43,6 @@ const stringToGroupKey = (str: string): GroupKey => {
   return { type, value };
 };
 
-// Helper to get familiarity range label with learning state
-const getFamiliarityRangeLabel = (range: string): string => {
-  if (range === "no-data") return "No Data";
-  
-  // Map ranges to learning state labels
-  const rangeLabels: Record<string, string> = {
-    "0-30": "Struggling (0-30%)",
-    "30-50": "Struggling (30-50%)",
-    "50-70": "Learning (50-70%)",
-    "70-90": "Familiar (70-90%)",
-    "90-100": "Mastered (90-100%)",
-  };
-  
-  return rangeLabels[range] || `${range}%`;
-};
-
 // Reusable Group Card Component
 type GroupCardProps = {
   groupKey: string;

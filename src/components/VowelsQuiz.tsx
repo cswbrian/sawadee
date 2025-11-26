@@ -193,7 +193,7 @@ export const VowelsQuiz = () => {
       allItems={allVowels}
       getCorrectAnswer={(v) => v.sound}
       generateOptions={generateOptions}
-      renderCard={(v, showSound, showBadge) => (
+      renderCard={(v, _showSound, _showBadge) => (
         <VowelCard vowel={v} />
       )}
       getItemColor={(v) => getTypeColor(v.type)}
