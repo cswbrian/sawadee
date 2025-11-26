@@ -10,6 +10,7 @@ import { Letters } from "@/components/Letters";
 import { Settings } from "@/components/Settings";
 import { ReadingQuiz } from "@/components/ReadingQuiz";
 import { NumbersQuiz } from "@/components/NumbersQuiz";
+import { VowelsQuiz } from "@/components/VowelsQuiz";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 const QuizContext = createContext<{
@@ -123,6 +124,7 @@ function App() {
             <Route path="/letters/numbers" element={<Numbers />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/quiz/initial-consonants" element={<ReadingQuiz />} />
+            <Route path="/quiz/vowels" element={<VowelsQuiz />} />
             <Route path="/quiz/numbers" element={<NumbersQuiz />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

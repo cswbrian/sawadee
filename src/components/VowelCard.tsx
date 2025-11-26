@@ -30,7 +30,7 @@ export const VowelCard = ({ vowel }: VowelCardProps) => {
 
   return (
     <Card
-      className="flex flex-col items-center justify-center py-1 h-[100px]"
+      className="flex flex-col items-center justify-center py-1 h-[100px] w-full"
       style={{ backgroundColor: bgColor }}
     >
       <CardContent className="flex flex-col items-center justify-center p-0 gap-1 h-full">

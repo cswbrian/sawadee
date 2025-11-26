@@ -43,19 +43,20 @@ export const Quiz = () => {
             <span>Final Consonants</span>
           </Button>
 
-          <Button
-            variant="default"
-            size="lg"
-            disabled
-            className="w-full text-sm py-4 flex-col h-auto bg-white opacity-50 cursor-not-allowed border-2 border-border"
-            style={{
-              backgroundColor: "white",
-              color: "var(--foreground)",
-            }}
-          >
-            <span className="thai-font text-4xl mb-2">อา</span>
-            <span>Vowels</span>
-          </Button>
+          <Link to="/quiz/vowels" className="w-full">
+            <Button
+              variant="default"
+              size="lg"
+              className="w-full text-sm py-4 flex-col h-auto bg-white hover:bg-gray-50 border-2 border-border"
+              style={{
+                backgroundColor: "white",
+                color: "var(--foreground)",
+              }}
+            >
+              <span className="thai-font text-4xl mb-2">อา</span>
+              <span>Vowels</span>
+            </Button>
+          </Link>
 
           <Link to="/quiz/numbers" className="w-full">
             <Button

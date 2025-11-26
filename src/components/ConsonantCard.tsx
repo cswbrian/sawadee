@@ -22,7 +22,7 @@ export const ConsonantCard = ({ consonant, showSound = true, showBadge = false }
 
   return (
     <Card
-      className="flex flex-col items-center justify-center p-3 min-h-[80px]"
+      className="flex flex-col items-center justify-center p-3 min-h-[80px] w-full"
       style={{ backgroundColor: bgColor }}
     >
       <CardContent className={`flex flex-col items-center justify-center p-0 ${showSound || showBadge ? 'gap-2' : ''}`}>
