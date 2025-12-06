@@ -129,6 +129,7 @@ export function LetterQuiz<T extends { thai: string }>({
   const [quizState, setQuizState] = useState<QuizState>("selection");
   const [activeTab, setActiveTab] = useState<string>(tabTypes[0]);
   const [quizTab, setQuizTab] = useState<string>(tabTypes[0]);
+  const [quizSelectedGroups, setQuizSelectedGroups] = useState<Set<string> | null>(null);
   const [shuffledItems, setShuffledItems] = useState<T[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -232,16 +233,22 @@ export function LetterQuiz<T extends { thai: string }>({
   };
 
   // Get items from selected groups
-  const getItemsFromSelectedGroups = (tab: string): T[] => {
-    const selectedGroupKeys = getSelectedGroupsForTab(tab);
+  const getItemsFromSelectedGroups = (tab: string, selectedGroupKeysOverride?: Set<string>): T[] => {
+    // Use override if provided (for restart), otherwise use current selected groups
+    const selectedGroupKeys = selectedGroupKeysOverride ?? getSelectedGroupsForTab(tab);
     const allItems: T[] = [];
+    
+    // Use the tab's config, not the group.type from the parsed key
+    const config = groupConfigs[tab];
+    if (!config) return [];
+    
+    const groupedItems = config.getGroupedItems();
     
     selectedGroupKeys.forEach((groupKeyStr) => {
       const group = stringToGroupKey(groupKeyStr);
-      const config = groupConfigs[group.type];
-      if (!config) return;
+      // Verify that the group type matches the tab (safety check)
+      if (group.type !== tab) return;
       
-      const groupedItems = config.getGroupedItems();
       const groupItems = groupedItems[String(group.value)] || [];
       allItems.push(...groupItems);
     });
@@ -253,8 +260,8 @@ export function LetterQuiz<T extends { thai: string }>({
   };
 
   // Prepare quiz items (shuffled selection)
-  const prepareQuizItems = (tab: string): T[] => {
-    const uniqueItems = getItemsFromSelectedGroups(tab);
+  const prepareQuizItems = (tab: string, selectedGroupKeysOverride?: Set<string>): T[] => {
+    const uniqueItems = getItemsFromSelectedGroups(tab, selectedGroupKeysOverride);
     if (uniqueItems.length === 0) return [];
 
     const settings = loadSettings();
@@ -279,7 +286,9 @@ export function LetterQuiz<T extends { thai: string }>({
     const shuffled = prepareQuizItems(activeTab);
     if (shuffled.length === 0) return;
 
+    // Save the tab and selected groups for restart
     setQuizTab(activeTab);
+    setQuizSelectedGroups(new Set(selectedGroupKeys));
     setShuffledItems(shuffled);
     setCurrentIndex(0);
     setSelectedAnswer(null);
@@ -324,7 +333,10 @@ export function LetterQuiz<T extends { thai: string }>({
   };
 
   const handleRestart = () => {
-    const shuffled = prepareQuizItems(quizTab);
+    // Use the saved selected groups from when the quiz was started
+    if (!quizSelectedGroups || quizSelectedGroups.size === 0) return;
+    
+    const shuffled = prepareQuizItems(quizTab, quizSelectedGroups);
     if (shuffled.length === 0) return;
     
     setShuffledItems(shuffled);
@@ -338,6 +350,8 @@ export function LetterQuiz<T extends { thai: string }>({
   const handleReturnToSelection = () => {
     setQuizState("selection");
     // Keep selectedGroups - don't reset them
+    // Clear quizSelectedGroups so next start uses current selections
+    setQuizSelectedGroups(null);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
@@ -346,6 +360,7 @@ export function LetterQuiz<T extends { thai: string }>({
   const handleExitQuiz = () => {
     if (window.confirm("Are you sure you want to exit the quiz? Your progress will be lost.")) {
       setQuizState("selection");
+      setQuizSelectedGroups(null);
       setCurrentIndex(0);
       setSelectedAnswer(null);
       setAnswerResults([]);
