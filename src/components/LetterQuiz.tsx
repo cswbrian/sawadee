@@ -98,7 +98,11 @@ export type LetterQuizProps<T extends { thai: string }> = {
   quizType: QuizType;
   allItems: T[];
   getCorrectAnswer: (item: T) => string;
-  generateOptions: (item: T, allItems: T[]) => string[];
+  generateOptions: (item: T, allItems: T[]) => Array<{
+    value: string;
+    label: string;
+    subLabel?: string;
+  } | string>; // Allow objects or strings for backward compatibility
   renderCard: (item: T, showSound?: boolean, showBadge?: boolean) => React.ReactNode;
   getItemColor?: (item: T) => string;
   getItemLabel?: (item: T) => string;
@@ -133,7 +137,7 @@ export function LetterQuiz<T extends { thai: string }>({
   const [shuffledItems, setShuffledItems] = useState<T[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [options, setOptions] = useState<string[]>([]);
+  const [options, setOptions] = useState<Array<string | { value: string; label: string; subLabel?: string }>>([]);
   const [answerResults, setAnswerResults] = useState<Array<{
     item: T;
     selectedAnswer: string;
@@ -199,8 +203,11 @@ export function LetterQuiz<T extends { thai: string }>({
     });
   }, [wrongAnswers, quizType]);
 
-  const generateOptionsForQuestion = (correctItem: T) => {
-    const options = generateOptionsProp(correctItem, allItems);
+  const generateOptionsForQuestion = (correctItem: T, poolItems?: T[]) => {
+    // If poolItems is provided, use it. Otherwise default to allItems (backward compatibility)
+    // Ideally we should always pass poolItems now.
+    const optionsSource = poolItems && poolItems.length >= 4 ? poolItems : allItems;
+    const options = generateOptionsProp(correctItem, optionsSource);
     setOptions(options);
   };
 
@@ -293,7 +300,12 @@ export function LetterQuiz<T extends { thai: string }>({
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
-    generateOptionsForQuestion(shuffled[0]);
+    
+    // Pass the filtered pool of items to generateOptions
+    // This ensures distractors only come from the selected groups
+    const poolItems = getItemsFromSelectedGroups(activeTab);
+    generateOptionsForQuestion(shuffled[0], poolItems);
+    
     setQuizState("quiz");
   };
 
@@ -326,7 +338,20 @@ export function LetterQuiz<T extends { thai: string }>({
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setSelectedAnswer(null);
-      generateOptionsForQuestion(shuffledItems[nextIndex]);
+      
+      // Use the stored shuffled items as the pool if possible, or reconstruct the pool
+      // For consistency, we should ideally store the pool or re-derive it.
+      // Since we don't store the full pool in state, we can re-derive it using the saved quizTab and quizSelectedGroups
+      // However, handleNext doesn't have easy access to the exact pool used at start if it was complex.
+      // But we know 'shuffledItems' is a subset of the pool.
+      // The most robust way is to re-fetch the pool using quizTab and quizSelectedGroups
+      if (quizSelectedGroups) {
+         const poolItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
+         generateOptionsForQuestion(shuffledItems[nextIndex], poolItems);
+      } else {
+         // Fallback if something is weird, though quizSelectedGroups should be set
+         generateOptionsForQuestion(shuffledItems[nextIndex], shuffledItems);
+      }
     } else {
       setQuizState("end");
     }
@@ -343,7 +368,11 @@ export function LetterQuiz<T extends { thai: string }>({
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
-    generateOptionsForQuestion(shuffled[0]);
+    
+    // Re-derive pool for restart
+    const poolItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
+    generateOptionsForQuestion(shuffled[0], poolItems);
+    
     setQuizState("quiz");
   };
 
@@ -479,8 +508,10 @@ export function LetterQuiz<T extends { thai: string }>({
 
           <div className="flex flex-col items-center gap-8 py-8">
             <Card className="flex h-[280px] w-full max-w-md flex-col items-center justify-center p-8 bg-white">
-              <CardContent className="flex h-full flex-col items-center justify-center gap-4 p-0">
-                <div className="text-8xl text-foreground thai-font leading-none">
+              <CardContent className="flex h-full flex-col items-center justify-center gap-4 p-0 w-full">
+                <div className={`text-foreground thai-font text-center transition-all wrap-break-word w-full px-4 ${
+                  currentItem.thai.length > 1 ? "text-5xl sm:text-6xl leading-tight" : "text-8xl leading-none"
+                }`}>
                   {currentItem.thai}
                 </div>
                 <div className="flex min-h-[80px] flex-col items-center justify-center gap-2">
@@ -516,8 +547,12 @@ export function LetterQuiz<T extends { thai: string }>({
             <div className="w-full max-w-md space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {options.map((option, index) => {
-                  const isSelected = selectedAnswer === option;
-                  const isCorrect = option === correctAnswer;
+                  const optionValue = typeof option === 'string' ? option : option.value;
+                  const optionLabel = typeof option === 'string' ? option : option.label;
+                  const optionSubLabel = typeof option === 'string' ? undefined : option.subLabel;
+                  
+                  const isSelected = selectedAnswer === optionValue;
+                  const isCorrect = optionValue === correctAnswer;
                   const isWrong = isSelected && !isCorrect;
                   const isDisabled = selectedAnswer !== null;
 
@@ -532,16 +567,19 @@ export function LetterQuiz<T extends { thai: string }>({
 
                   return (
                     <Button
-                      key={`${option}-${index}`}
+                      key={`${optionValue}-${index}`}
                       variant="neutral"
                       size="lg"
-                      onClick={() => handleAnswerSelect(option)}
+                      onClick={() => handleAnswerSelect(optionValue)}
                       disabled={isDisabled}
-                      className={`h-16 text-xl ${backgroundColor || ""} border-2 border-border transition-all ${
+                      className={`h-auto min-h-16 py-3 px-2 text-base sm:text-lg whitespace-normal ${backgroundColor || ""} border-2 border-border transition-all flex flex-col items-center justify-center gap-1 ${
                         isDisabled ? "cursor-not-allowed" : ""
                       }`}
                     >
-                      {option || "-"}
+                      <span className="leading-tight text-center">{optionLabel || "-"}</span>
+                      {optionSubLabel && (
+                        <span className="text-sm font-normal opacity-80 leading-tight text-center">{optionSubLabel}</span>
+                      )}
                     </Button>
                   );
                 })}
