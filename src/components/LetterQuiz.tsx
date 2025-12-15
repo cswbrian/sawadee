@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuizContext } from "@/App";
-import { loadSettings } from "@/lib/settings";
+import { loadSettings, saveQuizSelection, getQuizSelection } from "@/lib/settings";
 import { recordAnswer, selectWeighted, type QuizType } from "@/lib/stats";
 import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
 
@@ -168,28 +168,61 @@ export function LetterQuiz<T extends { thai: string }>({
     }
   }, [quizState]);
 
-  // Initialize selected groups with all groups selected by default
+  // Initialize selected groups
   const [selectedGroups, setSelectedGroups] = useState<Record<string, Set<string>>>(() => {
     const initial: Record<string, Set<string>> = {};
+    
+    // Initialize empty sets for all tabs
     tabTypes.forEach((tabType) => {
       initial[tabType] = new Set();
     });
+    
     return initial;
   });
 
-  // Populate selected groups with defaults on mount
+  // Populate selected groups on mount - load from settings or default to all
   useEffect(() => {
+    const savedSelection = getQuizSelection(quizType);
     const newSelectedGroups: Record<string, Set<string>> = {};
+    
+    // First, verify valid tab types
     tabTypes.forEach((tabType) => {
-      const config = groupConfigs[tabType];
-      if (config) {
-        newSelectedGroups[tabType] = new Set(config.getGroupKeys());
-      } else {
-        newSelectedGroups[tabType] = new Set();
-      }
+      newSelectedGroups[tabType] = new Set();
     });
+
+    if (savedSelection && savedSelection.length > 0) {
+      // Restore from saved settings
+      savedSelection.forEach(key => {
+        const group = stringToGroupKey(key);
+        // Only add if the tab type is valid for this quiz
+        if (newSelectedGroups[group.type]) {
+          newSelectedGroups[group.type].add(key);
+        }
+      });
+      
+      // If we loaded selections, update the active tab to the first one that has selections
+      // or keep default if none match (fallback logic handled below)
+    } else {
+      // Default behavior: Select ALL for each tab
+      tabTypes.forEach((tabType) => {
+        const config = groupConfigs[tabType];
+        if (config) {
+          newSelectedGroups[tabType] = new Set(config.getGroupKeys());
+        }
+      });
+    }
+    
     setSelectedGroups(newSelectedGroups);
-  }, [tabTypes, groupConfigs]);
+  }, [quizType, tabTypes, groupConfigs]);
+
+  // Save selection whenever it changes (debounced slightly by nature of user interaction)
+  const saveCurrentSelection = (currentGroups: Record<string, Set<string>>) => {
+    const allSelectedKeys: string[] = [];
+    Object.values(currentGroups).forEach(set => {
+      set.forEach(key => allSelectedKeys.push(key));
+    });
+    saveQuizSelection(quizType, allSelectedKeys);
+  };
 
   // Sort wrong answers by familiarity (least correct first)
   const wrongAnswers = answerResults.filter((r) => !r.isCorrect);
@@ -223,15 +256,23 @@ export function LetterQuiz<T extends { thai: string }>({
         currentSet.add(groupKey);
       }
       next[type] = currentSet;
+      
+      // Save changes
+      saveCurrentSelection(next);
+      
       return next;
     });
   };
 
   const handleClearAll = () => {
-    setSelectedGroups((prev) => ({
-      ...prev,
-      [activeTab]: new Set<string>(),
-    }));
+    setSelectedGroups((prev) => {
+      const next = {
+        ...prev,
+        [activeTab]: new Set<string>(),
+      };
+      saveCurrentSelection(next);
+      return next;
+    });
   };
 
   // Get selected groups for a specific tab
