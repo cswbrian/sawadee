@@ -565,8 +565,8 @@ export function LetterQuiz<T extends { thai: string }>({
     const correctCount = answerResults.filter((r) => r.isCorrect).length;
     const totalQuestions = shuffledItems.length;
 
-    // Get selected groups labels for display
-    const selectedGroupKeys = getSelectedGroupsForTab(quizTab);
+    // Get selected groups labels for display - use the saved groups from when quiz started
+    const selectedGroupKeys = quizSelectedGroups || new Set<string>();
     const selectedGroupLabels = Array.from(selectedGroupKeys).map((groupKeyStr) => {
       const group = stringToGroupKey(groupKeyStr);
       return getGroupDisplayLabel(group);
