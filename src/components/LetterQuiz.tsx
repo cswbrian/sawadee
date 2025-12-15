@@ -446,28 +446,30 @@ export function LetterQuiz<T extends { thai: string }>({
 
   if (quizState === "selection") {
     return (
-      <div className="bg-background p-4 pb-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-6">
-            <h1 className="text-2xl">{title}</h1>
+      <div className="bg-background h-[calc(100vh-64px)] flex flex-col">
+        <div className="mx-auto max-w-4xl w-full flex-1 flex flex-col min-h-0">
+          <div className="p-4 pb-0">
+            <h1 className="text-2xl mb-4">{title}</h1>
           </div>
 
           <Tabs
             defaultValue={tabTypes[0]}
             value={activeTab}
             onValueChange={(value) => setActiveTab(value)}
-            className="w-full"
+            className="w-full flex-1 flex flex-col min-h-0"
           >
-            <TabsList className="mb-6 w-full">
-              {tabTypes.map((tabType) => {
-                const config = groupConfigs[tabType];
-                return (
-                  <TabsTrigger key={tabType} value={tabType} className="flex-1">
-                    {config?.label || tabType}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+            <div className="px-4">
+              <TabsList className="mb-4 w-full">
+                {tabTypes.map((tabType) => {
+                  const config = groupConfigs[tabType];
+                  return (
+                    <TabsTrigger key={tabType} value={tabType} className="flex-1">
+                      {config?.label || tabType}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
 
             {tabTypes.map((tabType) => {
               const config = groupConfigs[tabType];
@@ -477,7 +479,7 @@ export function LetterQuiz<T extends { thai: string }>({
               const groupOrder = config.getGroupOrder();
               
               return (
-                <TabsContent key={tabType} value={tabType} asChild>
+                <TabsContent key={tabType} value={tabType} className="flex-1 overflow-y-auto px-4 pb-4 min-h-0 data-[state=inactive]:hidden">
                   <div className="space-y-4">
                     {groupOrder.map((groupValueStr) => {
                       const groupValue = groupValueStr;
@@ -506,21 +508,23 @@ export function LetterQuiz<T extends { thai: string }>({
             })}
           </Tabs>
 
-          <div className="mt-8 flex flex-col items-center gap-4">
-            <Button
-              variant="default"
-              size="lg"
-              onClick={handleStartQuiz}
-              disabled={getSelectedGroupsForTab(activeTab).size === 0}
-              className="w-full max-w-md"
-            >
-              Start Quiz
-            </Button>
-            {getSelectedGroupsForTab(activeTab).size > 0 && (
-              <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full max-w-md">
-                Clear All
+          <div className="p-4 border-t border-border bg-background mt-auto sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <div className="flex flex-col items-center gap-3 w-full max-w-md mx-auto">
+              <Button
+                variant="default"
+                size="lg"
+                onClick={handleStartQuiz}
+                disabled={getSelectedGroupsForTab(activeTab).size === 0}
+                className="w-full"
+              >
+                Start Quiz
               </Button>
-            )}
+              {getSelectedGroupsForTab(activeTab).size > 0 && (
+                <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full">
+                  Clear All
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
