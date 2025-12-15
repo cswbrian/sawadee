@@ -20,6 +20,7 @@ const getQuizTypeLabel = (quizType: QuizType): string => {
     final_consonant: "Final Consonants",
     vowel: "Vowels",
     number: "Numbers",
+    word: "Words",
   };
   return labels[quizType];
 };
@@ -30,6 +31,7 @@ const getQuizTypePath = (quizType: QuizType): string => {
     final_consonant: "/quiz/final-consonants",
     vowel: "/quiz/vowels",
     number: "/quiz/numbers",
+    word: "/quiz/words",
   };
   return paths[quizType];
 };
@@ -136,6 +138,7 @@ export const StrugglingLetters = () => {
       final_consonant: "/letters/final-consonants?tab=familiarity",
       vowel: "/letters/vowels?tab=familiarity",
       number: "/letters/numbers?tab=familiarity",
+      word: "/quiz/words", // Words don't have a letters page, so link to quiz
     };
     return paths[quizType];
   };
