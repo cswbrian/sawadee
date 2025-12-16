@@ -391,10 +391,15 @@ export function LetterQuiz<T extends { thai: string }>({
     
     if (allSelectedKeys.size === 0) return;
 
-    // Get items from both category and subcategory if needed
-    const categoryItems = activeTab === "category" ? getItemsFromSelectedGroups("category") : [];
-    const subCategoryItems = activeTab === "category" ? getItemsFromSelectedGroups("subCategory") : [];
-    const allItems = [...categoryItems, ...subCategoryItems];
+    // Get items based on active tab (special handling for category + subCategory)
+    let allItems: T[] = [];
+    if (activeTab === "category") {
+      const categoryItems = getItemsFromSelectedGroups("category");
+      const subCategoryItems = getItemsFromSelectedGroups("subCategory");
+      allItems = [...categoryItems, ...subCategoryItems];
+    } else {
+      allItems = getItemsFromSelectedGroups(activeTab);
+    }
     
     // Remove duplicates
     const uniqueItems = Array.from(
@@ -468,7 +473,15 @@ export function LetterQuiz<T extends { thai: string }>({
       // But we know 'shuffledItems' is a subset of the pool.
       // The most robust way is to re-fetch the pool using quizTab and quizSelectedGroups
       if (quizSelectedGroups) {
-         const poolItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
+         let poolItems: T[] = [];
+         if (quizTab === "category") {
+            poolItems = [
+               ...getItemsFromSelectedGroups("category", quizSelectedGroups),
+               ...getItemsFromSelectedGroups("subCategory", quizSelectedGroups)
+            ];
+         } else {
+            poolItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
+         }
          generateOptionsForQuestion(shuffledItems[nextIndex], poolItems);
       } else {
          // Fallback if something is weird, though quizSelectedGroups should be set
@@ -484,10 +497,14 @@ export function LetterQuiz<T extends { thai: string }>({
     if (!quizSelectedGroups || quizSelectedGroups.size === 0) return;
     
     // Replicate the same logic as handleStartQuiz
-    // Get items from both category and subcategory if needed
-    const categoryItems = quizTab === "category" ? getItemsFromSelectedGroups("category", quizSelectedGroups) : [];
-    const subCategoryItems = quizTab === "category" ? getItemsFromSelectedGroups("subCategory", quizSelectedGroups) : [];
-    const allItems = [...categoryItems, ...subCategoryItems];
+    let allItems: T[] = [];
+    if (quizTab === "category") {
+      const categoryItems = getItemsFromSelectedGroups("category", quizSelectedGroups);
+      const subCategoryItems = getItemsFromSelectedGroups("subCategory", quizSelectedGroups);
+      allItems = [...categoryItems, ...subCategoryItems];
+    } else {
+      allItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
+    }
     
     // Remove duplicates
     const uniqueItems = Array.from(

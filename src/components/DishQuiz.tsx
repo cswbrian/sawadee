@@ -51,7 +51,7 @@ const createDish3 = (
 const DishCard = ({ word, showSound = true, showBadge = false }: { word: Word; showSound?: boolean; showBadge?: boolean }) => {
   return (
     <Card
-      className="flex flex-col items-center justify-center p-3 sm:p-4 min-h-[140px] sm:min-h-[160px] w-full bg-[var(--chart-3)]"
+      className="flex flex-col items-center justify-center p-3 sm:p-4 min-h-[140px] sm:min-h-[160px] w-full bg-chart-3"
     >
       <CardContent className={`flex flex-col items-center justify-center p-0 w-full ${showSound || showBadge ? 'gap-3' : ''}`}>
         <div className="text-3xl sm:text-5xl text-foreground thai-font leading-normal text-center wrap-break-word w-full px-2">
@@ -196,7 +196,7 @@ export const DishQuiz = () => {
     all: {
       type: "all",
       label: "All Dishes",
-      getGroupKeys: () => new Set(["all"]),
+      getGroupKeys: () => new Set(["all-all"]),
       getGroupedItems: () => ({ all: dishes }),
       getGroupOrder: () => ["all"],
       getGroupLabel: () => "Mixed Dishes",
