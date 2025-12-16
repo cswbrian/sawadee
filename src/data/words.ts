@@ -66,7 +66,7 @@ export const words: Word[] = [
   { thai: "ไก่", phonetic: "gai", meaning: "Chicken", category: "food", subCategory: "proteins" },
   { thai: "หมู", phonetic: "moo", meaning: "Pork", category: "food", subCategory: "proteins" },
   { thai: "เนื้อ", phonetic: "neua", meaning: "Beef", category: "food", subCategory: "proteins" },
-  { thai: "ทะเล", phonetic: "talay", meaning: "Seafood/Mix", category: "food", subCategory: "proteins" },
+  { thai: "ทะเล", phonetic: "ta-lay", meaning: "Seafood/Mix", category: "food", subCategory: "proteins" },
   { thai: "กุ้ง", phonetic: "goong", meaning: "Shrimp/Prawn", category: "food", subCategory: "proteins" },
   { thai: "ปลา", phonetic: "pla", meaning: "Fish", category: "food", subCategory: "proteins" },
   { thai: "เป็ด", phonetic: "ped", meaning: "Duck", category: "food", subCategory: "proteins" },
@@ -114,7 +114,7 @@ export const words: Word[] = [
   { thai: "พริกขิง", phonetic: "prik-khing", meaning: "Ginger Chili Paste", category: "food", subCategory: "ingredients" },
   { thai: "ข่า", phonetic: "kha", meaning: "Galangal", category: "food", subCategory: "ingredients" },
   { thai: "เส้นหมี่", phonetic: "sen-mee", meaning: "Vermicelli", category: "food", subCategory: "ingredients" },
-  { thai: "บะหมี่", phonetic: "bami", meaning: "Egg Noodles", category: "food", subCategory: "ingredients" },
+  { thai: "บะหมี่", phonetic: "ba-mi", meaning: "Egg Noodles", category: "food", subCategory: "ingredients" },
   { thai: "ก๋วยเตี๋ยว", phonetic: "kuay-teow", meaning: "Noodles", category: "food", subCategory: "ingredients" },
   
   // Food - Grains

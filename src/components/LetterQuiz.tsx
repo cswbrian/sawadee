@@ -9,7 +9,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useQuizContext } from "@/App";
 import { loadSettings, saveQuizSelection, getQuizSelection } from "@/lib/settings";
 import { recordAnswer, selectWeighted, type QuizType } from "@/lib/stats";
-import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
+import { sortByFamiliarity, getFamiliarityPercentage, breakDownThaiWord } from "@/lib/utils";
 
 type QuizState = "selection" | "quiz" | "end";
 
@@ -767,7 +767,9 @@ export function LetterQuiz<T extends { thai: string }>({
                 <div className={`text-foreground thai-font text-center transition-all wrap-break-word w-full px-4 ${
                   currentItem.thai.length > 1 ? "text-5xl sm:text-6xl leading-tight" : "text-8xl leading-none"
                 }`}>
-                  {currentItem.thai}
+                  {selectedAnswer !== null && getItemSubLabel && getItemSubLabel(currentItem)
+                    ? breakDownThaiWord(currentItem.thai, getItemSubLabel(currentItem))
+                    : currentItem.thai}
                 </div>
                 <div className="flex min-h-[80px] flex-col items-center justify-center gap-2">
                   {selectedAnswer !== null ? (
