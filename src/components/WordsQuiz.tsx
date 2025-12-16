@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { words, type Word, type WordCategory, categoryOrder, getCategoryLabel, type WordSubCategory, subCategoryOrder, getSubCategoryLabel } from "@/data/words";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +76,6 @@ const WordCard = ({ word, showSound = true, showBadge = false }: WordCardProps) 
 };
 
 export const WordsQuiz = () => {
-  const [expandedFoodCategory, setExpandedFoodCategory] = useState(false);
 
   // Group words by category
   const groupedByCategory = useMemo(() => {
@@ -243,6 +242,17 @@ export const WordsQuiz = () => {
     };
   }, [groupedByCategory, groupedByFamiliarity, filteredFamiliarityOrder, groupedBySubCategory, filteredSubCategoryOrder]);
 
+  // Configure subcategories for categories that have them
+  const subCategoryConfigs = useMemo(() => {
+    return {
+      food: {
+        subCategories: groupedBySubCategory,
+        subCategoryOrder: filteredSubCategoryOrder,
+        subCategoryGroupConfig: groupConfigs.subCategory,
+      },
+    };
+  }, [groupedBySubCategory, filteredSubCategoryOrder, groupConfigs.subCategory]);
+
   return (
     <LetterQuiz<Word>
       quizType={QUIZ_TYPE}
@@ -259,11 +269,7 @@ export const WordsQuiz = () => {
       groupConfigs={groupConfigs}
       title="Word Quiz - Select Group"
       itemLabel="words"
-      expandedFoodCategory={expandedFoodCategory}
-      onFoodCategoryToggle={() => setExpandedFoodCategory(!expandedFoodCategory)}
-      foodSubCategories={groupedBySubCategory}
-      foodSubCategoryOrder={filteredSubCategoryOrder}
-      foodSubCategoryConfig={groupConfigs.subCategory}
+      subCategoryConfigs={subCategoryConfigs}
     />
   );
 };

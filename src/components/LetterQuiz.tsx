@@ -166,12 +166,13 @@ export type LetterQuizProps<T extends { thai: string }> = {
   itemLabel: string; // e.g., "consonants", "vowels"
   // Optional: custom handler for group clicks (returns true if handled, false to use default toggle)
   onGroupClick?: (type: string, value: string | number) => boolean;
-  // Accordion props for food subcategories
-  expandedFoodCategory?: boolean;
-  onFoodCategoryToggle?: () => void;
-  foodSubCategories?: Record<string, T[]>;
-  foodSubCategoryOrder?: string[];
-  foodSubCategoryConfig?: GroupConfig<T>;
+  // Generic subcategory configuration for any category
+  // Maps category value to its subcategory configuration
+  subCategoryConfigs?: Record<string, {
+    subCategories: Record<string, T[]>;
+    subCategoryOrder: string[];
+    subCategoryGroupConfig: GroupConfig<T>;
+  }>;
 };
 
 export function LetterQuiz<T extends { thai: string }>({
@@ -188,11 +189,7 @@ export function LetterQuiz<T extends { thai: string }>({
   title,
   itemLabel,
   onGroupClick,
-  expandedFoodCategory = false,
-  onFoodCategoryToggle,
-  foodSubCategories,
-  foodSubCategoryOrder,
-  foodSubCategoryConfig,
+  subCategoryConfigs,
 }: LetterQuizProps<T>) {
   const { setIsInQuiz } = useQuizContext();
   const [quizState, setQuizState] = useState<QuizState>("selection");
@@ -244,6 +241,9 @@ export function LetterQuiz<T extends { thai: string }>({
     
     return initial;
   });
+
+  // Track expanded categories (for accordion functionality)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   // Populate selected groups on mount - load from settings or default to all
   useEffect(() => {
@@ -379,26 +379,6 @@ export function LetterQuiz<T extends { thai: string }>({
     );
   };
 
-  // Prepare quiz items (shuffled selection)
-  const prepareQuizItems = (tab: string, selectedGroupKeysOverride?: Set<string>): T[] => {
-    const uniqueItems = getItemsFromSelectedGroups(tab, selectedGroupKeysOverride);
-    if (uniqueItems.length === 0) return [];
-
-    const settings = loadSettings();
-    let shuffled: T[];
-    
-    if (settings.adaptiveLearning) {
-      shuffled = selectWeighted(quizType, uniqueItems, 10);
-      shuffled = shuffled.sort(() => Math.random() - 0.5);
-    } else {
-      shuffled = [...uniqueItems]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 10);
-    }
-    
-    return shuffled;
-  };
-
   const handleStartQuiz = () => {
     const selectedGroupKeys = getSelectedGroupsForTab(activeTab);
     
@@ -503,7 +483,31 @@ export function LetterQuiz<T extends { thai: string }>({
     // Use the saved selected groups from when the quiz was started
     if (!quizSelectedGroups || quizSelectedGroups.size === 0) return;
     
-    const shuffled = prepareQuizItems(quizTab, quizSelectedGroups);
+    // Replicate the same logic as handleStartQuiz
+    // Get items from both category and subcategory if needed
+    const categoryItems = quizTab === "category" ? getItemsFromSelectedGroups("category", quizSelectedGroups) : [];
+    const subCategoryItems = quizTab === "category" ? getItemsFromSelectedGroups("subCategory", quizSelectedGroups) : [];
+    const allItems = [...categoryItems, ...subCategoryItems];
+    
+    // Remove duplicates
+    const uniqueItems = Array.from(
+      new Map(allItems.map((item) => [item.thai, item])).values()
+    );
+    
+    if (uniqueItems.length === 0) return;
+
+    const settings = loadSettings();
+    let shuffled: T[];
+    
+    if (settings.adaptiveLearning) {
+      shuffled = selectWeighted(quizType, uniqueItems, 10);
+      shuffled = shuffled.sort(() => Math.random() - 0.5);
+    } else {
+      shuffled = [...uniqueItems]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+    }
+    
     if (shuffled.length === 0) return;
     
     setShuffledItems(shuffled);
@@ -511,9 +515,8 @@ export function LetterQuiz<T extends { thai: string }>({
     setSelectedAnswer(null);
     setAnswerResults([]);
     
-    // Re-derive pool for restart
-    const poolItems = getItemsFromSelectedGroups(quizTab, quizSelectedGroups);
-    generateOptionsForQuestion(shuffled[0], poolItems);
+    // Pass the filtered pool of items to generateOptions
+    generateOptionsForQuestion(shuffled[0], uniqueItems);
     
     setQuizState("quiz");
   };
@@ -591,19 +594,22 @@ export function LetterQuiz<T extends { thai: string }>({
                       const groupKey = groupKeyToString({ type: tabType, value: groupValue });
                       const isSelected = getSelectedGroupsForTab(tabType).has(groupKey);
                       const count = groupedItems[groupValueStr]?.length || 0;
-                      const isFoodCategory = tabType === "category" && groupValue === "food";
-                      const isExpanded = isFoodCategory && expandedFoodCategory;
                       
-                      // Calculate subcategory selection state for Food category
-                      let foodSubCategoryState: { allSelected: boolean; someSelected: boolean; noneSelected: boolean } | null = null;
-                      if (isFoodCategory && foodSubCategoryOrder) {
-                        const subCategoryKeys = foodSubCategoryOrder.map(sub => 
+                      // Check if this category has subcategories configured
+                      const subCategoryConfig = subCategoryConfigs?.[String(groupValue)];
+                      const hasSubCategories = !!subCategoryConfig;
+                      const isExpanded = hasSubCategories && expandedCategories.has(String(groupValue));
+                      
+                      // Calculate subcategory selection state
+                      let subCategoryState: { allSelected: boolean; someSelected: boolean; noneSelected: boolean } | null = null;
+                      if (hasSubCategories && subCategoryConfig) {
+                        const subCategoryKeys = subCategoryConfig.subCategoryOrder.map(sub => 
                           groupKeyToString({ type: "subCategory", value: sub })
                         );
                         const selectedSubCategories = subCategoryKeys.filter(key => 
                           getSelectedGroupsForTab("subCategory").has(key)
                         );
-                        foodSubCategoryState = {
+                        subCategoryState = {
                           allSelected: selectedSubCategories.length === subCategoryKeys.length && subCategoryKeys.length > 0,
                           someSelected: selectedSubCategories.length > 0 && selectedSubCategories.length < subCategoryKeys.length,
                           noneSelected: selectedSubCategories.length === 0,
@@ -616,61 +622,67 @@ export function LetterQuiz<T extends { thai: string }>({
                             groupKey={groupKey}
                             groupValue={groupValue}
                             groupType={tabType}
-                            isSelected={isFoodCategory && foodSubCategoryState 
-                              ? foodSubCategoryState.allSelected 
+                            isSelected={hasSubCategories && subCategoryState 
+                              ? subCategoryState.allSelected 
                               : isSelected}
                             count={count}
                             label={config.getGroupLabel(groupValue)}
                             itemLabel={itemLabel}
                             onToggle={() => {
-                              if (isFoodCategory) {
+                              if (hasSubCategories && subCategoryConfig) {
                                 // Toggle all subcategories when checkbox is clicked
-                                if (foodSubCategoryOrder && foodSubCategoryConfig) {
-                                  const subCategoryKeys = foodSubCategoryOrder.map(sub => 
-                                    groupKeyToString({ type: "subCategory", value: sub })
-                                  );
-                                  const currentSubSelections = getSelectedGroupsForTab("subCategory");
-                                  const allSelected = subCategoryKeys.every(key => currentSubSelections.has(key));
+                                const subCategoryKeys = subCategoryConfig.subCategoryOrder.map(sub => 
+                                  groupKeyToString({ type: "subCategory", value: sub })
+                                );
+                                const currentSubSelections = getSelectedGroupsForTab("subCategory");
+                                const allSelected = subCategoryKeys.every(key => currentSubSelections.has(key));
+                                
+                                setSelectedGroups((prev) => {
+                                  const next = { ...prev };
+                                  const subCategorySet = new Set(next["subCategory"] || []);
                                   
-                                  setSelectedGroups((prev) => {
-                                    const next = { ...prev };
-                                    const subCategorySet = new Set(next["subCategory"] || []);
-                                    
-                                    if (allSelected) {
-                                      // Deselect all subcategories
-                                      subCategoryKeys.forEach(key => subCategorySet.delete(key));
-                                    } else {
-                                      // Select all subcategories
-                                      subCategoryKeys.forEach(key => subCategorySet.add(key));
-                                    }
-                                    
-                                    next["subCategory"] = subCategorySet;
-                                    saveCurrentSelection(next);
-                                    return next;
-                                  });
-                                }
+                                  if (allSelected) {
+                                    // Deselect all subcategories
+                                    subCategoryKeys.forEach(key => subCategorySet.delete(key));
+                                  } else {
+                                    // Select all subcategories
+                                    subCategoryKeys.forEach(key => subCategorySet.add(key));
+                                  }
+                                  
+                                  next["subCategory"] = subCategorySet;
+                                  saveCurrentSelection(next);
+                                  return next;
+                                });
                               } else {
                                 handleGroupToggle(tabType, groupValue);
                               }
                             }}
-                            onAccordionToggle={isFoodCategory && onFoodCategoryToggle ? () => {
-                              onFoodCategoryToggle();
+                            onAccordionToggle={hasSubCategories ? () => {
+                              setExpandedCategories((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(String(groupValue))) {
+                                  next.delete(String(groupValue));
+                                } else {
+                                  next.add(String(groupValue));
+                                }
+                                return next;
+                              });
                             } : undefined}
                             renderBadge={config.renderGroupBadge ? () => config.renderGroupBadge!(groupValue) : undefined}
-                            isAccordion={isFoodCategory}
+                            isAccordion={hasSubCategories}
                             isExpanded={isExpanded}
-                            isIndeterminate={isFoodCategory && foodSubCategoryState 
-                              ? foodSubCategoryState.someSelected 
+                            isIndeterminate={hasSubCategories && subCategoryState 
+                              ? subCategoryState.someSelected 
                               : false}
                           />
                           
-                          {/* Accordion content for Food subcategories */}
-                          {isFoodCategory && isExpanded && foodSubCategories && foodSubCategoryOrder && foodSubCategoryConfig && (
+                          {/* Accordion content for subcategories */}
+                          {hasSubCategories && isExpanded && subCategoryConfig && (
                             <div className="ml-4 space-y-2 border-l-2 border-border pl-4">
-                              {foodSubCategoryOrder.map((subValueStr) => {
+                              {subCategoryConfig.subCategoryOrder.map((subValueStr) => {
                                 const subGroupKey = groupKeyToString({ type: "subCategory", value: subValueStr });
                                 const subIsSelected = getSelectedGroupsForTab("subCategory").has(subGroupKey);
-                                const subCount = foodSubCategories[subValueStr]?.length || 0;
+                                const subCount = subCategoryConfig.subCategories[subValueStr]?.length || 0;
                                 
                                 return (
                                   <GroupCard
@@ -680,10 +692,10 @@ export function LetterQuiz<T extends { thai: string }>({
                                     groupType="subCategory"
                                     isSelected={subIsSelected}
                                     count={subCount}
-                                    label={foodSubCategoryConfig.getGroupLabel(subValueStr)}
+                                    label={subCategoryConfig.subCategoryGroupConfig.getGroupLabel(subValueStr)}
                                     itemLabel={itemLabel}
                                     onToggle={() => handleGroupToggle("subCategory", subValueStr)}
-                                    renderBadge={foodSubCategoryConfig.renderGroupBadge ? () => foodSubCategoryConfig.renderGroupBadge!(subValueStr) : undefined}
+                                    renderBadge={subCategoryConfig.subCategoryGroupConfig.renderGroupBadge ? () => subCategoryConfig.subCategoryGroupConfig.renderGroupBadge!(subValueStr) : undefined}
                                   />
                                 );
                               })}
