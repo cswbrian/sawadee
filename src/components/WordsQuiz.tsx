@@ -244,10 +244,55 @@ export const WordsQuiz = () => {
 
   // Configure subcategories for categories that have them
   const subCategoryConfigs = useMemo(() => {
+    // Filter subcategories by parent category
+    const foodSubCategories = Object.keys(groupedBySubCategory).reduce((acc, key) => {
+      const wordsInSub = groupedBySubCategory[key];
+      if (wordsInSub.some(w => w.category === "food")) {
+        acc[key] = wordsInSub.filter(w => w.category === "food");
+      }
+      return acc;
+    }, {} as Record<string, Word[]>);
+
+    const placesSubCategories = Object.keys(groupedBySubCategory).reduce((acc, key) => {
+      const wordsInSub = groupedBySubCategory[key];
+      if (wordsInSub.some(w => w.category === "places")) {
+        acc[key] = wordsInSub.filter(w => w.category === "places");
+      }
+      return acc;
+    }, {} as Record<string, Word[]>);
+
+    const drinkSubCategories = Object.keys(groupedBySubCategory).reduce((acc, key) => {
+      const wordsInSub = groupedBySubCategory[key];
+      if (wordsInSub.some(w => w.category === "drink")) {
+        acc[key] = wordsInSub.filter(w => w.category === "drink");
+      }
+      return acc;
+    }, {} as Record<string, Word[]>);
+
+    const foodSubCategoryOrder = filteredSubCategoryOrder.filter(sub => 
+      foodSubCategories[sub] && foodSubCategories[sub].length > 0
+    );
+    const placesSubCategoryOrder = filteredSubCategoryOrder.filter(sub => 
+      placesSubCategories[sub] && placesSubCategories[sub].length > 0
+    );
+    const drinkSubCategoryOrder = filteredSubCategoryOrder.filter(sub => 
+      drinkSubCategories[sub] && drinkSubCategories[sub].length > 0
+    );
+
     return {
       food: {
-        subCategories: groupedBySubCategory,
-        subCategoryOrder: filteredSubCategoryOrder,
+        subCategories: foodSubCategories,
+        subCategoryOrder: foodSubCategoryOrder,
+        subCategoryGroupConfig: groupConfigs.subCategory,
+      },
+      places: {
+        subCategories: placesSubCategories,
+        subCategoryOrder: placesSubCategoryOrder,
+        subCategoryGroupConfig: groupConfigs.subCategory,
+      },
+      drink: {
+        subCategories: drinkSubCategories,
+        subCategoryOrder: drinkSubCategoryOrder,
         subCategoryGroupConfig: groupConfigs.subCategory,
       },
     };

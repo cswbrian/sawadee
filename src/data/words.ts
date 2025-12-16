@@ -16,7 +16,17 @@ export type WordSubCategory =
   | "vegetables"
   | "grains"
   | "descriptors"
-  | "general";
+  | "general"
+  | "sukhumvit_stations"
+  | "services"
+  | "accommodation"
+  | "transportation"
+  | "shopping"
+  | "cultural"
+  | "general_places"
+  | "thai_drinks"
+  | "coffee_drinks"
+  | "bar_drinks";
 
 export interface Word {
   thai: string;
@@ -150,33 +160,106 @@ export const words: Word[] = [
   { thai: "อิ่ม", phonetic: "im", meaning: "Full", category: "food", subCategory: "descriptors" },
   { thai: "ไม่เผ็ด", phonetic: "mai-phet", meaning: "Not spicy", category: "food", subCategory: "descriptors" },
   
-  // Drink
-  { thai: "น้ำ", phonetic: "nam", meaning: "Water", category: "drink" },
-  { thai: "น้ำแข็ง", phonetic: "nam-khaeng", meaning: "Ice", category: "drink" },
-  { thai: "กาแฟ", phonetic: "ka-fae", meaning: "Coffee", category: "drink" },
-  { thai: "ชา", phonetic: "cha", meaning: "Tea", category: "drink" },
-  { thai: "ชาไทย", phonetic: "cha-thai", meaning: "Thai Milk Tea", category: "drink" },
-  { thai: "นม", phonetic: "nom", meaning: "Milk", category: "drink" },
-  { thai: "เบียร์", phonetic: "bia", meaning: "Beer", category: "drink" },
-  { thai: "น้ำผลไม้", phonetic: "nam-phon-la-mai", meaning: "Fruit Juice", category: "drink" },
-  { thai: "กาแฟเย็น", phonetic: "ka-fae-yen", meaning: "Iced Coffee", category: "drink" },
-  { thai: "ชาเย็น", phonetic: "cha-yen", meaning: "Iced Tea (Thai Tea)", category: "drink" },
+  // Drink - Common Thai Drinks
+  { thai: "น้ำ", phonetic: "nam", meaning: "Water", category: "drink", subCategory: "thai_drinks" },
+  { thai: "น้ำแข็ง", phonetic: "nam-khaeng", meaning: "Ice", category: "drink", subCategory: "thai_drinks" },
+  { thai: "ชาไทย", phonetic: "cha-thai", meaning: "Thai Milk Tea", category: "drink", subCategory: "thai_drinks" },
+  { thai: "ชาเย็น", phonetic: "cha-yen", meaning: "Iced Tea (Thai Tea)", category: "drink", subCategory: "thai_drinks" },
+  { thai: "น้ำผลไม้", phonetic: "nam-phon-la-mai", meaning: "Fruit Juice", category: "drink", subCategory: "thai_drinks" },
+  { thai: "โอเลี้ยง", phonetic: "o-liang", meaning: "Oliang (Thai Iced Coffee)", category: "drink", subCategory: "thai_drinks" },
+  { thai: "น้ำอัดลม", phonetic: "nam-at-lom", meaning: "Soft Drink / Soda", category: "drink", subCategory: "thai_drinks" },
+  { thai: "ชาเขียว", phonetic: "cha-khiao", meaning: "Green Tea", category: "drink", subCategory: "thai_drinks" },
+  { thai: "ชามะนาว", phonetic: "cha-ma-nao", meaning: "Lemon Tea", category: "drink", subCategory: "thai_drinks" },
+  { thai: "นม", phonetic: "nom", meaning: "Milk", category: "drink", subCategory: "thai_drinks" },
+  
+  // Drink - Coffee Drinks
+  { thai: "กาแฟ", phonetic: "ka-fae", meaning: "Coffee", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "กาแฟเย็น", phonetic: "ka-fae-yen", meaning: "Iced Coffee", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "อเมริกาโน่", phonetic: "a-me-ri-ka-no", meaning: "Americano", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "คาปูชิโน่", phonetic: "ka-pu-chi-no", meaning: "Cappuccino", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "ลาเต้", phonetic: "la-te", meaning: "Latte", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "เอสเพรสโซ่", phonetic: "et-pre-so", meaning: "Espresso", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "เอสเย็น", phonetic: "et-yen", meaning: "Es Yen (Thai Iced Espresso)", category: "drink", subCategory: "coffee_drinks" },
+  { thai: "ชา", phonetic: "cha", meaning: "Tea", category: "drink", subCategory: "coffee_drinks" },
+  
+  // Drink - Bar Drinks
+  { thai: "เบียร์", phonetic: "bia", meaning: "Beer", category: "drink", subCategory: "bar_drinks" },
+  { thai: "ไวน์", phonetic: "wai", meaning: "Wine", category: "drink", subCategory: "bar_drinks" },
+  { thai: "เหล้า", phonetic: "lao", meaning: "Liquor / Spirits", category: "drink", subCategory: "bar_drinks" },
+  { thai: "เหล้าขาว", phonetic: "lao-khao", meaning: "White Spirit / Rice Whiskey", category: "drink", subCategory: "bar_drinks" },
+  { thai: "แสงโสม", phonetic: "saeng-som", meaning: "SangSom (Thai Rum)", category: "drink", subCategory: "bar_drinks" },
+  { thai: "แม่โขง", phonetic: "mae-khong", meaning: "Mekhong (Thai Whiskey)", category: "drink", subCategory: "bar_drinks" },
+  
+  // Drink - General (utensils/containers)
   { thai: "แก้ว", phonetic: "kaew", meaning: "Glass / Cup", category: "drink" },
   { thai: "ขวด", phonetic: "khuat", meaning: "Bottle", category: "drink" },
   
-  // Places
-  { thai: "ห้องน้ำ", phonetic: "hong-nam", meaning: "Toilet / Restroom", category: "places" },
-  { thai: "โรงแรม", phonetic: "rong-raem", meaning: "Hotel", category: "places" },
-  { thai: "ร้านอาหาร", phonetic: "ran-a-han", meaning: "Restaurant", category: "places" },
-  { thai: "สนามบิน", phonetic: "sa-nam-bin", meaning: "Airport", category: "places" },
-  { thai: "โรงพยาบาล", phonetic: "rong-pha-ya-ban", meaning: "Hospital", category: "places" },
-  { thai: "ตลาด", phonetic: "ta-lat", meaning: "Market", category: "places" },
-  { thai: "ร้านขายยา", phonetic: "ran-khai-ya", meaning: "Pharmacy", category: "places" },
-  { thai: "ธนาคาร", phonetic: "tha-na-khan", meaning: "Bank", category: "places" },
-  { thai: "สถานีตำรวจ", phonetic: "sa-tha-ni-tam-ruat", meaning: "Police Station", category: "places" },
-  { thai: "วัด", phonetic: "wat", meaning: "Temple", category: "places" },
-  { thai: "บ้าน", phonetic: "ban", meaning: "House / Home", category: "places" },
-  { thai: "โรงเรียน", phonetic: "rong-rian", meaning: "School", category: "places" },
+  // Places - Services
+  { thai: "ห้องน้ำ", phonetic: "hong-nam", meaning: "Toilet / Restroom", category: "places", subCategory: "services" },
+  { thai: "โรงพยาบาล", phonetic: "rong-pha-ya-ban", meaning: "Hospital", category: "places", subCategory: "services" },
+  { thai: "ร้านขายยา", phonetic: "ran-khai-ya", meaning: "Pharmacy", category: "places", subCategory: "services" },
+  { thai: "ธนาคาร", phonetic: "tha-na-khan", meaning: "Bank", category: "places", subCategory: "services" },
+  { thai: "สถานีตำรวจ", phonetic: "sa-tha-ni-tam-ruat", meaning: "Police Station", category: "places", subCategory: "services" },
+  { thai: "ไปรษณีย์", phonetic: "pai-sa-ni", meaning: "Post Office", category: "places", subCategory: "services" },
+  { thai: "สถานทูต", phonetic: "sa-tha-ni-thut", meaning: "Embassy", category: "places", subCategory: "services" },
+  { thai: "ตู้ ATM", phonetic: "tu-ATM", meaning: "ATM", category: "places", subCategory: "services" },
+  { thai: "คลินิก", phonetic: "khli-nik", meaning: "Clinic", category: "places", subCategory: "services" },
+  
+  // Places - Accommodation
+  { thai: "โรงแรม", phonetic: "rong-raem", meaning: "Hotel", category: "places", subCategory: "accommodation" },
+  { thai: "ร้านอาหาร", phonetic: "ran-a-han", meaning: "Restaurant", category: "places", subCategory: "accommodation" },
+  { thai: "เกสต์เฮาส์", phonetic: "khet-hao", meaning: "Guesthouse", category: "places", subCategory: "accommodation" },
+  { thai: "คาเฟ่", phonetic: "ka-fae", meaning: "Cafe", category: "places", subCategory: "accommodation" },
+  { thai: "บาร์", phonetic: "ba", meaning: "Bar", category: "places", subCategory: "accommodation" },
+  { thai: "ร้านกาแฟ", phonetic: "ran-ka-fae", meaning: "Coffee Shop", category: "places", subCategory: "accommodation" },
+  
+  // Places - Transportation
+  { thai: "สนามบิน", phonetic: "sa-nam-bin", meaning: "Airport", category: "places", subCategory: "transportation" },
+  { thai: "สถานีรถเมล์", phonetic: "sa-tha-ni-rot-me", meaning: "Bus Station", category: "places", subCategory: "transportation" },
+  { thai: "สถานีรถไฟ", phonetic: "sa-tha-ni-rot-fai", meaning: "Train Station", category: "places", subCategory: "transportation" },
+  { thai: "สถานี BTS", phonetic: "sa-tha-ni-BTS", meaning: "BTS Station", category: "places", subCategory: "transportation" },
+  { thai: "ท่าเรือ", phonetic: "tha-ruea", meaning: "Pier / Port", category: "places", subCategory: "transportation" },
+  
+  // Places - Shopping
+  { thai: "ตลาด", phonetic: "ta-lat", meaning: "Market", category: "places", subCategory: "shopping" },
+  { thai: "ห้างสรรพสินค้า", phonetic: "hang-sap-pha-sin-kha", meaning: "Shopping Mall", category: "places", subCategory: "shopping" },
+  { thai: "ร้านสะดวกซื้อ", phonetic: "ran-sa-duak-sue", meaning: "Convenience Store", category: "places", subCategory: "shopping" },
+  { thai: "ซูเปอร์มาร์เก็ต", phonetic: "su-per-ma-ket", meaning: "Supermarket", category: "places", subCategory: "shopping" },
+  { thai: "ร้าน", phonetic: "ran", meaning: "Shop / Store", category: "places", subCategory: "shopping" },
+  
+  // Places - Cultural
+  { thai: "วัด", phonetic: "wat", meaning: "Temple", category: "places", subCategory: "cultural" },
+  { thai: "พิพิธภัณฑ์", phonetic: "phi-phit-tha-phan", meaning: "Museum", category: "places", subCategory: "cultural" },
+  { thai: "สวน", phonetic: "suan", meaning: "Park / Garden", category: "places", subCategory: "cultural" },
+  { thai: "อนุสาวรีย์", phonetic: "a-nu-sa-wa-ri", meaning: "Monument", category: "places", subCategory: "cultural" },
+  { thai: "วัง", phonetic: "wang", meaning: "Palace", category: "places", subCategory: "cultural" },
+  
+  // Places - General
+  { thai: "บ้าน", phonetic: "ban", meaning: "House / Home", category: "places", subCategory: "general_places" },
+  { thai: "โรงเรียน", phonetic: "rong-rian", meaning: "School", category: "places", subCategory: "general_places" },
+  { thai: "ออฟฟิศ", phonetic: "of-fit", meaning: "Office", category: "places", subCategory: "general_places" },
+  { thai: "ตึก", phonetic: "tuek", meaning: "Building", category: "places", subCategory: "general_places" },
+  { thai: "ถนน", phonetic: "tha-non", meaning: "Street / Road", category: "places", subCategory: "general_places" },
+  { thai: "ย่าน", phonetic: "yan", meaning: "Area / Neighborhood", category: "places", subCategory: "general_places" },
+  
+  // Sukhumvit Line Stations (Mo Chit to On Nut)
+  { thai: "หมอชิต", phonetic: "mo-chit", meaning: "Mo Chit", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "สะพานควาย", phonetic: "sa-phan-khwai", meaning: "Saphan Khwai", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "อารีย์", phonetic: "a-ri", meaning: "Ari", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "สนามเป้า", phonetic: "sa-nam-pao", meaning: "Sanam Pao", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "อนุสาวรีย์ชัยสมรภูมิ", phonetic: "a-nu-sa-wa-ri-chai-sa-mon-ra-phum", meaning: "Victory Monument", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "พญาไท", phonetic: "pha-ya-thai", meaning: "Phaya Thai", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "ราชเทวี", phonetic: "rat-cha-the-wi", meaning: "Ratchathewi", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "สยาม", phonetic: "sa-yam", meaning: "Siam", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "ชิดลม", phonetic: "chit-lom", meaning: "Chit Lom", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "เพลินจิต", phonetic: "phloen-chit", meaning: "Phloen Chit", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "นานา", phonetic: "na-na", meaning: "Nana", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "อโศก", phonetic: "a-sok", meaning: "Asok", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "พร้อมพงษ์", phonetic: "phrom-phong", meaning: "Phrom Phong", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "ทองหล่อ", phonetic: "thong-lo", meaning: "Thong Lo", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "เอกมัย", phonetic: "ek-ka-mai", meaning: "Ekkamai", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "พระโขนง", phonetic: "phra-kha-nong", meaning: "Phra Khanong", category: "places", subCategory: "sukhumvit_stations" },
+  { thai: "อ่อนนุช", phonetic: "on-nut", meaning: "On Nut", category: "places", subCategory: "sukhumvit_stations" },
   
   // Directions
   { thai: "ซ้าย", phonetic: "sai", meaning: "Left", category: "directions" },
@@ -224,8 +307,8 @@ export const categoryOrder: WordCategory[] = [
   "basics",
   "food",
   "drink",
-  "shopping",
   "places",
+  "shopping",
   "directions",
 ];
 
@@ -239,6 +322,16 @@ export const subCategoryOrder: WordSubCategory[] = [
   "grains",
   "descriptors",
   "general",
+  "sukhumvit_stations",
+  "services",
+  "accommodation",
+  "transportation",
+  "shopping",
+  "cultural",
+  "general_places",
+  "thai_drinks",
+  "coffee_drinks",
+  "bar_drinks",
 ];
 
 export const getSubCategoryLabel = (sub: WordSubCategory): string => {
@@ -251,7 +344,17 @@ export const getSubCategoryLabel = (sub: WordSubCategory): string => {
     vegetables: "Vegetables",
     grains: "Grains/Noodles",
     descriptors: "Descriptors",
-    general: "General"
+    general: "General",
+    sukhumvit_stations: "Sukhumvit Line Stations",
+    services: "Services",
+    accommodation: "Accommodation & Dining",
+    transportation: "Transportation",
+    shopping: "Shopping",
+    cultural: "Cultural",
+    general_places: "General Places",
+    thai_drinks: "Common Thai Drinks",
+    coffee_drinks: "Coffee Drinks",
+    bar_drinks: "Bar Drinks"
   };
   return labelMap[sub];
 };
