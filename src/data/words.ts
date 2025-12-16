@@ -7,11 +7,23 @@ export type WordCategory =
   | "directions"
   | "shopping";
 
+export type WordSubCategory = 
+  | "proteins"
+  | "prep"
+  | "flavors"
+  | "ingredients"
+  | "dishes"
+  | "vegetables"
+  | "grains"
+  | "descriptors"
+  | "general";
+
 export interface Word {
   thai: string;
   phonetic: string;
   meaning: string;
   category: WordCategory;
+  subCategory?: WordSubCategory;
 }
 
 export const words: Word[] = [
@@ -40,39 +52,103 @@ export const words: Word[] = [
   { thai: "เมื่อไหร่", phonetic: "muea-rai", meaning: "When?", category: "basics" },
   { thai: "ทำไม", phonetic: "tham-mai", meaning: "Why?", category: "basics" },
   
-  // Food
-  { thai: "ข้าว", phonetic: "khao", meaning: "Rice / Food", category: "food" },
-  { thai: "ไก่", phonetic: "kai", meaning: "Chicken", category: "food" },
-  { thai: "หมู", phonetic: "moo", meaning: "Pork", category: "food" },
-  { thai: "เนื้อ", phonetic: "nuea", meaning: "Beef", category: "food" },
-  { thai: "กุ้ง", phonetic: "kung", meaning: "Shrimp", category: "food" },
-  { thai: "ปลา", phonetic: "pla", meaning: "Fish", category: "food" },
-  { thai: "ไข่", phonetic: "khai", meaning: "Egg", category: "food" },
-  { thai: "ผัก", phonetic: "phak", meaning: "Vegetable", category: "food" },
-  { thai: "ผลไม้", phonetic: "phon-la-mai", meaning: "Fruit", category: "food" },
-  { thai: "ผัดไทย", phonetic: "pad-thai", meaning: "Pad Thai", category: "food" },
-  { thai: "ส้มตำ", phonetic: "som-tam", meaning: "Papaya Salad", category: "food" },
-  { thai: "ต้มยำกุ้ง", phonetic: "tom-yum-kung", meaning: "Spicy Shrimp Soup", category: "food" },
-  { thai: "ข้าวผัด", phonetic: "khao-pad", meaning: "Fried Rice", category: "food" },
-  { thai: "แกงเขียวหวาน", phonetic: "kaeng-khiao-wan", meaning: "Green Curry", category: "food" },
-  { thai: "แกงมัสมั่น", phonetic: "kaeng-mat-sa-man", meaning: "Massaman Curry", category: "food" },
-  { thai: "พะแนง", phonetic: "pha-naeng", meaning: "Panang Curry", category: "food" },
-  { thai: "ผัดกะเพรา", phonetic: "pad-kra-pao", meaning: "Holy Basil Stir-fry", category: "food" },
-  { thai: "ต้มข่าไก่", phonetic: "tom-kha-kai", meaning: "Chicken Coconut Soup", category: "food" },
-  { thai: "ผัดซีอิ๊ว", phonetic: "pad-see-ew", meaning: "Stir-fried Soy Sauce Noodles", category: "food" },
-  { thai: "ข้าวซอย", phonetic: "khao-soi", meaning: "Northern Curry Noodles", category: "food" },
-  { thai: "หมูปิ้ง", phonetic: "moo-ping", meaning: "Grilled Pork Skewers", category: "food" },
-  { thai: "ลาบ", phonetic: "larb", meaning: "Spicy Minced Meat Salad", category: "food" },
-  { thai: "ไข่เจียว", phonetic: "khai-jiao", meaning: "Omelette", category: "food" },
-  { thai: "โจ๊ก", phonetic: "jok", meaning: "Rice Porridge", category: "food" },
-  { thai: "สะเต๊ะ", phonetic: "sa-te", meaning: "Satay", category: "food" },
-  { thai: "ผัดผักบุ้งไฟแดง", phonetic: "pad-phak-bung-fai-daeng", meaning: "Stir-fried Morning Glory", category: "food" },
-  { thai: "ข้าวเหนียวมะม่วง", phonetic: "khao-niao-ma-muang", meaning: "Mango Sticky Rice", category: "food" },
-  { thai: "เผ็ด", phonetic: "phet", meaning: "Spicy", category: "food" },
-  { thai: "ไม่เผ็ด", phonetic: "mai-phet", meaning: "Not spicy", category: "food" },
-  { thai: "อร่อย", phonetic: "a-roi", meaning: "Delicious", category: "food" },
-  { thai: "หิว", phonetic: "hiw", meaning: "Hungry", category: "food" },
-  { thai: "อิ่ม", phonetic: "im", meaning: "Full", category: "food" },
+  // Food - Proteins
+  { thai: "ไก่", phonetic: "gai", meaning: "Chicken", category: "food", subCategory: "proteins" },
+  { thai: "หมู", phonetic: "moo", meaning: "Pork", category: "food", subCategory: "proteins" },
+  { thai: "เนื้อ", phonetic: "neua", meaning: "Beef", category: "food", subCategory: "proteins" },
+  { thai: "ทะเล", phonetic: "talay", meaning: "Seafood/Mix", category: "food", subCategory: "proteins" },
+  { thai: "กุ้ง", phonetic: "goong", meaning: "Shrimp/Prawn", category: "food", subCategory: "proteins" },
+  { thai: "ปลา", phonetic: "pla", meaning: "Fish", category: "food", subCategory: "proteins" },
+  { thai: "เป็ด", phonetic: "ped", meaning: "Duck", category: "food", subCategory: "proteins" },
+  { thai: "เต้าหู้", phonetic: "tao-hu", meaning: "Tofu", category: "food", subCategory: "proteins" },
+  { thai: "ไข่", phonetic: "khai", meaning: "Egg", category: "food", subCategory: "proteins" },
+  { thai: "ปลาหมึก", phonetic: "pla-meuk", meaning: "Squid/Calamari", category: "food", subCategory: "proteins" },
+  { thai: "หมูกรอบ", phonetic: "moo-krob", meaning: "Crispy Pork Belly", category: "food", subCategory: "proteins" },
+  { thai: "ลูกชิ้น", phonetic: "luk-chin", meaning: "Meat/Fish Balls", category: "food", subCategory: "proteins" },
+  { thai: "แดง", phonetic: "daeng", meaning: "Red (BBQ Pork)", category: "food", subCategory: "proteins" },
+
+  // Food - Prep/Method
+  { thai: "ผัด", phonetic: "pad", meaning: "Stir-fried", category: "food", subCategory: "prep" },
+  { thai: "ทอด", phonetic: "tod", meaning: "Deep-fried", category: "food", subCategory: "prep" },
+  { thai: "ย่าง", phonetic: "yang", meaning: "Grilled/BBQ", category: "food", subCategory: "prep" },
+  { thai: "ต้ม", phonetic: "tom", meaning: "Boiled/Soup", category: "food", subCategory: "prep" },
+  { thai: "แกง", phonetic: "kaeng", meaning: "Curry", category: "food", subCategory: "prep" },
+  { thai: "อบ", phonetic: "ob", meaning: "Steamed/Baked", category: "food", subCategory: "prep" },
+  { thai: "จืด", phonetic: "jued", meaning: "Clear Soup (Mild)", category: "food", subCategory: "prep" },
+  { thai: "ลาบ", phonetic: "larb", meaning: "Spicy Minced Salad", category: "food", subCategory: "prep" },
+  { thai: "ยำ", phonetic: "yam", meaning: "Spicy Salad", category: "food", subCategory: "prep" },
+  { thai: "น้ำ", phonetic: "nam", meaning: "Water/Liquid", category: "food", subCategory: "prep" },
+  { thai: "แห้ง", phonetic: "haeng", meaning: "Dry", category: "food", subCategory: "prep" },
+  { thai: "ร้อน", phonetic: "ron", meaning: "Hot", category: "food", subCategory: "prep" },
+  { thai: "ยัดไส้", phonetic: "yat-sai", meaning: "Stuffed", category: "food", subCategory: "prep" },
+  { thai: "พริกเผา", phonetic: "phrik-paow", meaning: "Roasted Chili Paste", category: "food", subCategory: "prep" },
+
+  // Food - Flavors
+  { thai: "หวาน", phonetic: "wan", meaning: "Sweet", category: "food", subCategory: "flavors" },
+  { thai: "เผ็ด", phonetic: "phet", meaning: "Spicy", category: "food", subCategory: "flavors" },
+  { thai: "เปรี้ยว", phonetic: "priew", meaning: "Sour", category: "food", subCategory: "flavors" },
+  { thai: "เค็ม", phonetic: "khem", meaning: "Salty", category: "food", subCategory: "flavors" },
+  { thai: "มัน", phonetic: "man", meaning: "Oily/Fatty", category: "food", subCategory: "flavors" },
+
+  // Food - Ingredients
+  { thai: "ข้าว", phonetic: "khao", meaning: "Rice/Food", category: "food", subCategory: "ingredients" },
+  { thai: "มะม่วง", phonetic: "ma-muang", meaning: "Mango", category: "food", subCategory: "ingredients" },
+  { thai: "สับปะรด", phonetic: "sap-pa-rot", meaning: "Pineapple", category: "food", subCategory: "ingredients" },
+  { thai: "พริก", phonetic: "prik", meaning: "Chili", category: "food", subCategory: "ingredients" },
+  { thai: "กะเพรา", phonetic: "kra-pao", meaning: "Holy Basil", category: "food", subCategory: "ingredients" },
+  { thai: "กระเทียม", phonetic: "kra-tiem", meaning: "Garlic", category: "food", subCategory: "ingredients" },
+  { thai: "เม็ดมะม่วง", phonetic: "med-ma-muang", meaning: "Cashew Nuts", category: "food", subCategory: "ingredients" },
+  { thai: "วุ้นเส้น", phonetic: "woon-sen", meaning: "Glass Noodles", category: "food", subCategory: "ingredients" },
+  { thai: "เส้นใหญ่", phonetic: "sen-yai", meaning: "Wide Rice Noodles", category: "food", subCategory: "ingredients" },
+  { thai: "เส้นเล็ก", phonetic: "sen-lek", meaning: "Thin Rice Noodles", category: "food", subCategory: "ingredients" },
+  { thai: "พริกขิง", phonetic: "prik-khing", meaning: "Ginger Chili Paste", category: "food", subCategory: "ingredients" },
+  { thai: "ข่า", phonetic: "kha", meaning: "Galangal", category: "food", subCategory: "ingredients" },
+  { thai: "เส้นหมี่", phonetic: "sen-mee", meaning: "Vermicelli", category: "food", subCategory: "ingredients" },
+  { thai: "บะหมี่", phonetic: "bami", meaning: "Egg Noodles", category: "food", subCategory: "ingredients" },
+  { thai: "ก๋วยเตี๋ยว", phonetic: "kuay-teow", meaning: "Noodles", category: "food", subCategory: "ingredients" },
+  
+  // Food - Grains
+  { thai: "ข้าวสวย", phonetic: "khao-suay", meaning: "Plain White Rice", category: "food", subCategory: "grains" },
+  { thai: "ข้าวเหนียว", phonetic: "khao-niao", meaning: "Sticky Rice", category: "food", subCategory: "grains" },
+
+  // Food - Vegetables
+  { thai: "ผัก", phonetic: "phak", meaning: "Vegetable", category: "food", subCategory: "vegetables" },
+  { thai: "ถั่วงอก", phonetic: "thua-ngok", meaning: "Bean Sprouts", category: "food", subCategory: "vegetables" },
+  { thai: "หอมใหญ่", phonetic: "hom-yai", meaning: "Onion", category: "food", subCategory: "vegetables" },
+  { thai: "เห็ด", phonetic: "hed", meaning: "Mushroom", category: "food", subCategory: "vegetables" },
+
+  // Food - Descriptors
+  { thai: "ไข่ดาว", phonetic: "khai-dao", meaning: "Fried Egg", category: "food", subCategory: "descriptors" },
+  { thai: "ม่วง", phonetic: "muang", meaning: "Purple", category: "food", subCategory: "descriptors" },
+  { thai: "น้ำใส", phonetic: "nam-sai", meaning: "Clear Broth", category: "food", subCategory: "descriptors" },
+  { thai: "น้ำข้น", phonetic: "nam-khon", meaning: "Creamy Broth", category: "food", subCategory: "descriptors" },
+  { thai: "ซอส", phonetic: "sot", meaning: "Sauce", category: "food", subCategory: "descriptors" },
+
+  // Food - Dishes (Existing)
+  { thai: "ผัดไทย", phonetic: "pad-thai", meaning: "Pad Thai", category: "food", subCategory: "dishes" },
+  { thai: "ส้มตำ", phonetic: "som-tam", meaning: "Papaya Salad", category: "food", subCategory: "dishes" },
+  { thai: "ต้มยำกุ้ง", phonetic: "tom-yum-kung", meaning: "Spicy Shrimp Soup", category: "food", subCategory: "dishes" },
+  { thai: "ข้าวผัด", phonetic: "khao-pad", meaning: "Fried Rice", category: "food", subCategory: "dishes" },
+  { thai: "แกงเขียวหวาน", phonetic: "kaeng-khiao-wan", meaning: "Green Curry", category: "food", subCategory: "dishes" },
+  { thai: "แกงมัสมั่น", phonetic: "kaeng-mat-sa-man", meaning: "Massaman Curry", category: "food", subCategory: "dishes" },
+  { thai: "พะแนง", phonetic: "pha-naeng", meaning: "Panang Curry", category: "food", subCategory: "dishes" },
+  { thai: "ผัดกะเพรา", phonetic: "pad-kra-pao", meaning: "Holy Basil Stir-fry", category: "food", subCategory: "dishes" },
+  { thai: "ต้มข่าไก่", phonetic: "tom-kha-kai", meaning: "Chicken Coconut Soup", category: "food", subCategory: "dishes" },
+  { thai: "ผัดซีอิ๊ว", phonetic: "pad-see-ew", meaning: "Stir-fried Soy Sauce Noodles", category: "food", subCategory: "dishes" },
+  { thai: "ข้าวซอย", phonetic: "khao-soi", meaning: "Northern Curry Noodles", category: "food", subCategory: "dishes" },
+  { thai: "หมูปิ้ง", phonetic: "moo-ping", meaning: "Grilled Pork Skewers", category: "food", subCategory: "dishes" },
+  { thai: "ไข่เจียว", phonetic: "khai-jiao", meaning: "Omelette", category: "food", subCategory: "dishes" },
+  { thai: "โจ๊ก", phonetic: "jok", meaning: "Rice Porridge", category: "food", subCategory: "dishes" },
+  { thai: "สะเต๊ะ", phonetic: "sa-te", meaning: "Satay", category: "food", subCategory: "dishes" },
+  { thai: "ผัดผักบุ้งไฟแดง", phonetic: "pad-phak-bung-fai-daeng", meaning: "Stir-fried Morning Glory", category: "food", subCategory: "dishes" },
+  { thai: "ข้าวเหนียวมะม่วง", phonetic: "khao-niao-ma-muang", meaning: "Mango Sticky Rice", category: "food", subCategory: "dishes" },
+
+  // Food - General/Other (Existing)
+  { thai: "ผลไม้", phonetic: "phon-la-mai", meaning: "Fruit", category: "food", subCategory: "ingredients" },
+  { thai: "อร่อย", phonetic: "a-roi", meaning: "Delicious", category: "food", subCategory: "descriptors" },
+  { thai: "หิว", phonetic: "hiw", meaning: "Hungry", category: "food", subCategory: "descriptors" },
+  { thai: "อิ่ม", phonetic: "im", meaning: "Full", category: "food", subCategory: "descriptors" },
+  { thai: "ไม่เผ็ด", phonetic: "mai-phet", meaning: "Not spicy", category: "food", subCategory: "descriptors" },
   
   // Drink
   { thai: "น้ำ", phonetic: "nam", meaning: "Water", category: "drink" },
@@ -153,3 +229,29 @@ export const categoryOrder: WordCategory[] = [
   "directions",
 ];
 
+export const subCategoryOrder: WordSubCategory[] = [
+  "proteins",
+  "prep",
+  "flavors",
+  "ingredients",
+  "dishes",
+  "vegetables",
+  "grains",
+  "descriptors",
+  "general",
+];
+
+export const getSubCategoryLabel = (sub: WordSubCategory): string => {
+  const labelMap: Record<WordSubCategory, string> = {
+    proteins: "Proteins",
+    prep: "Prep/Method",
+    flavors: "Flavors",
+    ingredients: "Ingredients",
+    dishes: "Dishes",
+    vegetables: "Vegetables",
+    grains: "Grains/Noodles",
+    descriptors: "Descriptors",
+    general: "General"
+  };
+  return labelMap[sub];
+};

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useQuizContext } from "@/App";
 import { loadSettings, saveQuizSelection, getQuizSelection } from "@/lib/settings";
 import { recordAnswer, selectWeighted, type QuizType } from "@/lib/stats";
@@ -54,6 +55,11 @@ type GroupCardProps = {
   itemLabel: string;
   onToggle: () => void;
   renderBadge?: () => React.ReactNode;
+  isNavigable?: boolean; // If true, shows navigation indicator instead of checkbox
+  isAccordion?: boolean; // If true, shows accordion chevron
+  isExpanded?: boolean; // If true, accordion is expanded
+  isIndeterminate?: boolean; // If true, checkbox shows indeterminate state
+  onAccordionToggle?: () => void; // Separate handler for accordion expansion
 };
 
 const GroupCard = ({
@@ -64,29 +70,74 @@ const GroupCard = ({
   itemLabel,
   onToggle,
   renderBadge,
+  isNavigable = false,
+  isAccordion = false,
+  isExpanded = false,
+  isIndeterminate = false,
+  onAccordionToggle,
 }: GroupCardProps) => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If it's an accordion and click is not on checkbox, toggle accordion
+    if (isAccordion && onAccordionToggle) {
+      const target = e.target as HTMLElement;
+      // Check if click was on checkbox or its container
+      if (!target.closest('[data-slot="checkbox"]') && !target.closest('button')) {
+        onAccordionToggle();
+      }
+    } else if (!isNavigable) {
+      // For non-accordion cards, clicking anywhere toggles selection
+      onToggle();
+    }
+  };
+
   return (
     <Card
       key={groupKey}
-      className={`p-4 cursor-pointer transition-colors ${
+      className={`p-4 transition-colors ${
         isSelected ? "bg-secondary-background" : ""
-      }`}
-      onClick={onToggle}
+      } ${isNavigable ? "hover:bg-secondary-background cursor-pointer" : isAccordion ? "cursor-pointer" : ""}`}
+      onClick={handleCardClick}
     >
       <CardContent className="p-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onToggle}
-              onClick={(e) => e.stopPropagation()}
-            />
+          <div className="flex items-center gap-3 flex-1">
+            {isNavigable ? (
+              <div className="w-5 h-5 flex items-center justify-center">
+                <span className="text-muted-foreground">→</span>
+              </div>
+            ) : (
+              <Checkbox
+                checked={isIndeterminate ? "indeterminate" : isSelected}
+                onCheckedChange={onToggle}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
             {renderBadge ? renderBadge() : (
               <span className="font-semibold">{label}</span>
             )}
             <span className="text-sm text-muted-foreground">
               {count} {itemLabel}
             </span>
+            {isNavigable && (
+              <span className="ml-auto text-sm text-muted-foreground">Tap to view</span>
+            )}
+            {isAccordion && (
+              <div 
+                className="ml-auto cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onAccordionToggle) {
+                    onAccordionToggle();
+                  }
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
@@ -111,8 +162,16 @@ export type LetterQuizProps<T extends { thai: string }> = {
   tabTypes: string[];
   groupConfigs: Record<string, GroupConfig<T>>;
   // Display
-  title: string;
+  title: string | React.ReactNode;
   itemLabel: string; // e.g., "consonants", "vowels"
+  // Optional: custom handler for group clicks (returns true if handled, false to use default toggle)
+  onGroupClick?: (type: string, value: string | number) => boolean;
+  // Accordion props for food subcategories
+  expandedFoodCategory?: boolean;
+  onFoodCategoryToggle?: () => void;
+  foodSubCategories?: Record<string, T[]>;
+  foodSubCategoryOrder?: string[];
+  foodSubCategoryConfig?: GroupConfig<T>;
 };
 
 export function LetterQuiz<T extends { thai: string }>({
@@ -128,6 +187,12 @@ export function LetterQuiz<T extends { thai: string }>({
   groupConfigs,
   title,
   itemLabel,
+  onGroupClick,
+  expandedFoodCategory = false,
+  onFoodCategoryToggle,
+  foodSubCategories,
+  foodSubCategoryOrder,
+  foodSubCategoryConfig,
 }: LetterQuizProps<T>) {
   const { setIsInQuiz } = useQuizContext();
   const [quizState, setQuizState] = useState<QuizState>("selection");
@@ -246,6 +311,13 @@ export function LetterQuiz<T extends { thai: string }>({
 
   // Unified group toggle handler
   const handleGroupToggle = (type: string, value: string | number) => {
+    // Check if there's a custom handler
+    if (onGroupClick && onGroupClick(type, value)) {
+      // Custom handler handled it, don't do default toggle
+      return;
+    }
+    
+    // Default toggle behavior
     const groupKey = groupKeyToString({ type, value });
     setSelectedGroups((prev) => {
       const next = { ...prev };
@@ -329,23 +401,52 @@ export function LetterQuiz<T extends { thai: string }>({
 
   const handleStartQuiz = () => {
     const selectedGroupKeys = getSelectedGroupsForTab(activeTab);
-    if (selectedGroupKeys.size === 0) return;
+    
+    // If on category tab, also include subcategory selections (for food subcategories)
+    let allSelectedKeys = new Set(selectedGroupKeys);
+    if (activeTab === "category") {
+      const subCategoryKeys = getSelectedGroupsForTab("subCategory");
+      subCategoryKeys.forEach(key => allSelectedKeys.add(key));
+    }
+    
+    if (allSelectedKeys.size === 0) return;
 
-    const shuffled = prepareQuizItems(activeTab);
+    // Get items from both category and subcategory if needed
+    const categoryItems = activeTab === "category" ? getItemsFromSelectedGroups("category") : [];
+    const subCategoryItems = activeTab === "category" ? getItemsFromSelectedGroups("subCategory") : [];
+    const allItems = [...categoryItems, ...subCategoryItems];
+    
+    // Remove duplicates
+    const uniqueItems = Array.from(
+      new Map(allItems.map((item) => [item.thai, item])).values()
+    );
+    
+    if (uniqueItems.length === 0) return;
+
+    const settings = loadSettings();
+    let shuffled: T[];
+    
+    if (settings.adaptiveLearning) {
+      shuffled = selectWeighted(quizType, uniqueItems, 10);
+      shuffled = shuffled.sort(() => Math.random() - 0.5);
+    } else {
+      shuffled = [...uniqueItems]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 10);
+    }
+    
     if (shuffled.length === 0) return;
 
     // Save the tab and selected groups for restart
     setQuizTab(activeTab);
-    setQuizSelectedGroups(new Set(selectedGroupKeys));
+    setQuizSelectedGroups(allSelectedKeys);
     setShuffledItems(shuffled);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
     
     // Pass the filtered pool of items to generateOptions
-    // This ensures distractors only come from the selected groups
-    const poolItems = getItemsFromSelectedGroups(activeTab);
-    generateOptionsForQuestion(shuffled[0], poolItems);
+    generateOptionsForQuestion(shuffled[0], uniqueItems);
     
     setQuizState("quiz");
   };
@@ -449,7 +550,11 @@ export function LetterQuiz<T extends { thai: string }>({
       <div className="bg-background h-[calc(100vh-64px)] flex flex-col">
         <div className="mx-auto max-w-4xl w-full flex-1 flex flex-col min-h-0">
           <div className="p-4 pb-0">
-            <h1 className="text-2xl mb-4">{title}</h1>
+            {typeof title === "string" ? (
+              <h1 className="text-2xl mb-4">{title}</h1>
+            ) : (
+              <div className="mb-4">{title}</div>
+            )}
           </div>
 
           <Tabs
@@ -486,20 +591,105 @@ export function LetterQuiz<T extends { thai: string }>({
                       const groupKey = groupKeyToString({ type: tabType, value: groupValue });
                       const isSelected = getSelectedGroupsForTab(tabType).has(groupKey);
                       const count = groupedItems[groupValueStr]?.length || 0;
+                      const isFoodCategory = tabType === "category" && groupValue === "food";
+                      const isExpanded = isFoodCategory && expandedFoodCategory;
+                      
+                      // Calculate subcategory selection state for Food category
+                      let foodSubCategoryState: { allSelected: boolean; someSelected: boolean; noneSelected: boolean } | null = null;
+                      if (isFoodCategory && foodSubCategoryOrder) {
+                        const subCategoryKeys = foodSubCategoryOrder.map(sub => 
+                          groupKeyToString({ type: "subCategory", value: sub })
+                        );
+                        const selectedSubCategories = subCategoryKeys.filter(key => 
+                          getSelectedGroupsForTab("subCategory").has(key)
+                        );
+                        foodSubCategoryState = {
+                          allSelected: selectedSubCategories.length === subCategoryKeys.length && subCategoryKeys.length > 0,
+                          someSelected: selectedSubCategories.length > 0 && selectedSubCategories.length < subCategoryKeys.length,
+                          noneSelected: selectedSubCategories.length === 0,
+                        };
+                      }
                       
                       return (
-                        <GroupCard
-                          key={groupKey}
-                          groupKey={groupKey}
-                          groupValue={groupValue}
-                          groupType={tabType}
-                          isSelected={isSelected}
-                          count={count}
-                          label={config.getGroupLabel(groupValue)}
-                          itemLabel={itemLabel}
-                          onToggle={() => handleGroupToggle(tabType, groupValue)}
-                          renderBadge={config.renderGroupBadge ? () => config.renderGroupBadge!(groupValue) : undefined}
-                        />
+                        <div key={groupKey} className="space-y-2">
+                          <GroupCard
+                            groupKey={groupKey}
+                            groupValue={groupValue}
+                            groupType={tabType}
+                            isSelected={isFoodCategory && foodSubCategoryState 
+                              ? foodSubCategoryState.allSelected 
+                              : isSelected}
+                            count={count}
+                            label={config.getGroupLabel(groupValue)}
+                            itemLabel={itemLabel}
+                            onToggle={() => {
+                              if (isFoodCategory) {
+                                // Toggle all subcategories when checkbox is clicked
+                                if (foodSubCategoryOrder && foodSubCategoryConfig) {
+                                  const subCategoryKeys = foodSubCategoryOrder.map(sub => 
+                                    groupKeyToString({ type: "subCategory", value: sub })
+                                  );
+                                  const currentSubSelections = getSelectedGroupsForTab("subCategory");
+                                  const allSelected = subCategoryKeys.every(key => currentSubSelections.has(key));
+                                  
+                                  setSelectedGroups((prev) => {
+                                    const next = { ...prev };
+                                    const subCategorySet = new Set(next["subCategory"] || []);
+                                    
+                                    if (allSelected) {
+                                      // Deselect all subcategories
+                                      subCategoryKeys.forEach(key => subCategorySet.delete(key));
+                                    } else {
+                                      // Select all subcategories
+                                      subCategoryKeys.forEach(key => subCategorySet.add(key));
+                                    }
+                                    
+                                    next["subCategory"] = subCategorySet;
+                                    saveCurrentSelection(next);
+                                    return next;
+                                  });
+                                }
+                              } else {
+                                handleGroupToggle(tabType, groupValue);
+                              }
+                            }}
+                            onAccordionToggle={isFoodCategory && onFoodCategoryToggle ? () => {
+                              onFoodCategoryToggle();
+                            } : undefined}
+                            renderBadge={config.renderGroupBadge ? () => config.renderGroupBadge!(groupValue) : undefined}
+                            isAccordion={isFoodCategory}
+                            isExpanded={isExpanded}
+                            isIndeterminate={isFoodCategory && foodSubCategoryState 
+                              ? foodSubCategoryState.someSelected 
+                              : false}
+                          />
+                          
+                          {/* Accordion content for Food subcategories */}
+                          {isFoodCategory && isExpanded && foodSubCategories && foodSubCategoryOrder && foodSubCategoryConfig && (
+                            <div className="ml-4 space-y-2 border-l-2 border-border pl-4">
+                              {foodSubCategoryOrder.map((subValueStr) => {
+                                const subGroupKey = groupKeyToString({ type: "subCategory", value: subValueStr });
+                                const subIsSelected = getSelectedGroupsForTab("subCategory").has(subGroupKey);
+                                const subCount = foodSubCategories[subValueStr]?.length || 0;
+                                
+                                return (
+                                  <GroupCard
+                                    key={subGroupKey}
+                                    groupKey={subGroupKey}
+                                    groupValue={subValueStr}
+                                    groupType="subCategory"
+                                    isSelected={subIsSelected}
+                                    count={subCount}
+                                    label={foodSubCategoryConfig.getGroupLabel(subValueStr)}
+                                    itemLabel={itemLabel}
+                                    onToggle={() => handleGroupToggle("subCategory", subValueStr)}
+                                    renderBadge={foodSubCategoryConfig.renderGroupBadge ? () => foodSubCategoryConfig.renderGroupBadge!(subValueStr) : undefined}
+                                  />
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -514,12 +704,20 @@ export function LetterQuiz<T extends { thai: string }>({
                 variant="default"
                 size="lg"
                 onClick={handleStartQuiz}
-                disabled={getSelectedGroupsForTab(activeTab).size === 0}
+                disabled={(() => {
+                  const tabSelections = getSelectedGroupsForTab(activeTab).size;
+                  // If on category tab, also check subcategory selections
+                  if (activeTab === "category") {
+                    const subCategorySelections = getSelectedGroupsForTab("subCategory").size;
+                    return tabSelections === 0 && subCategorySelections === 0;
+                  }
+                  return tabSelections === 0;
+                })()}
                 className="w-full"
               >
                 Start Quiz
               </Button>
-              {getSelectedGroupsForTab(activeTab).size > 0 && (
+              {(getSelectedGroupsForTab(activeTab).size > 0 || (activeTab === "category" && getSelectedGroupsForTab("subCategory").size > 0)) && (
                 <Button variant="neutral" size="lg" onClick={handleClearAll} className="w-full">
                   Clear All
                 </Button>
@@ -678,11 +876,21 @@ export function LetterQuiz<T extends { thai: string }>({
                 {sortedWrongAnswers.length > 0 && (
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-semibold">Wrong Answers:</h3>
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                       {sortedWrongAnswers.map((result, index) => {
                         const percentage = getFamiliarityPercentage(quizType, result.item.thai);
+                        const isLong = result.item.thai.length > 8;
+                        
+                        let spanClass = "";
+                        if (isLong) {
+                          spanClass = "col-span-2 sm:col-span-2 md:col-span-2";
+                        }
+                        
                         return (
-                          <div key={index} className="flex flex-col items-center gap-1 w-full">
+                          <div 
+                            key={index} 
+                            className={`flex flex-col items-center gap-1 w-full ${spanClass}`}
+                          >
                             <div className="w-full">
                               {renderCard(result.item, true, true)}
                             </div>

@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { words, type Word, type WordCategory, categoryOrder, getCategoryLabel } from "@/data/words";
+import { useMemo, useState } from "react";
+import { words, type Word, type WordCategory, categoryOrder, getCategoryLabel, type WordSubCategory, subCategoryOrder, getSubCategoryLabel } from "@/data/words";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LetterQuiz, type LetterQuizProps } from "./LetterQuiz";
@@ -76,6 +76,8 @@ const WordCard = ({ word, showSound = true, showBadge = false }: WordCardProps) 
 };
 
 export const WordsQuiz = () => {
+  const [expandedFoodCategory, setExpandedFoodCategory] = useState(false);
+
   // Group words by category
   const groupedByCategory = useMemo(() => {
     return words.reduce(
@@ -130,6 +132,30 @@ export const WordsQuiz = () => {
     });
   }, [groupedByFamiliarity]);
 
+  // Group words by subCategory
+  const groupedBySubCategory = useMemo(() => {
+    return words.reduce(
+      (acc, word) => {
+        // Only include words that have a subCategory (mostly Food)
+        // or group others into "general" if we want them to show up
+        if (word.subCategory) {
+          if (!acc[word.subCategory]) {
+            acc[word.subCategory] = [];
+          }
+          acc[word.subCategory].push(word);
+        }
+        return acc;
+      },
+      {} as Record<string, Word[]>
+    );
+  }, []);
+
+  const filteredSubCategoryOrder = useMemo(() => {
+    return subCategoryOrder.filter((sub) => {
+      return groupedBySubCategory[sub] && groupedBySubCategory[sub].length > 0;
+    });
+  }, [groupedBySubCategory]);
+
   // Generate options for a word (meanings)
   const generateOptions = (correctWord: Word, allWords: Word[]) => {
     const correctMeaning = correctWord.meaning;
@@ -173,6 +199,11 @@ export const WordsQuiz = () => {
       familiarityGroupKeys.add(`familiarity-${range}`);
     });
 
+    const subCategoryGroupKeys = new Set<string>();
+    filteredSubCategoryOrder.forEach((sub) => {
+      subCategoryGroupKeys.add(`subCategory-${sub}`);
+    });
+
     return {
       category: {
         type: "category",
@@ -201,8 +232,16 @@ export const WordsQuiz = () => {
         getGroupOrder: () => filteredFamiliarityOrder,
         getGroupLabel: (value) => getFamiliarityRangeLabel(value as string),
       },
+      subCategory: {
+        type: "subCategory",
+        label: "Food Types",
+        getGroupKeys: () => subCategoryGroupKeys,
+        getGroupedItems: () => groupedBySubCategory,
+        getGroupOrder: () => filteredSubCategoryOrder,
+        getGroupLabel: (value) => getSubCategoryLabel(value as WordSubCategory),
+      },
     };
-  }, [groupedByCategory, groupedByFamiliarity, filteredFamiliarityOrder]);
+  }, [groupedByCategory, groupedByFamiliarity, filteredFamiliarityOrder, groupedBySubCategory, filteredSubCategoryOrder]);
 
   return (
     <LetterQuiz<Word>
@@ -220,6 +259,11 @@ export const WordsQuiz = () => {
       groupConfigs={groupConfigs}
       title="Word Quiz - Select Group"
       itemLabel="words"
+      expandedFoodCategory={expandedFoodCategory}
+      onFoodCategoryToggle={() => setExpandedFoodCategory(!expandedFoodCategory)}
+      foodSubCategories={groupedBySubCategory}
+      foodSubCategoryOrder={filteredSubCategoryOrder}
+      foodSubCategoryConfig={groupConfigs.subCategory}
     />
   );
 };

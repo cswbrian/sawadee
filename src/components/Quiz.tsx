@@ -72,6 +72,21 @@ export const Quiz = () => {
               <span>Numbers</span>
             </Button>
           </Link>
+
+          <Link to="/quiz/dishes" className="w-full col-span-2 sm:col-span-1">
+            <Button
+              variant="default"
+              size="lg"
+              className="w-full text-sm py-4 flex-col h-auto bg-white hover:bg-gray-50 border-2 border-border"
+              style={{
+                backgroundColor: "white",
+                color: "var(--foreground)",
+              }}
+            >
+              <span className="thai-font text-4xl mb-2">ต้มยำ</span>
+              <span>Dish Builder</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

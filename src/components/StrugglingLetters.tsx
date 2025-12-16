@@ -21,6 +21,7 @@ const getQuizTypeLabel = (quizType: QuizType): string => {
     vowel: "Vowels",
     number: "Numbers",
     word: "Words",
+    dish: "Dishes",
   };
   return labels[quizType];
 };
@@ -32,6 +33,7 @@ const getQuizTypePath = (quizType: QuizType): string => {
     vowel: "/quiz/vowels",
     number: "/quiz/numbers",
     word: "/quiz/words",
+    dish: "/quiz/dishes",
   };
   return paths[quizType];
 };
@@ -139,6 +141,7 @@ export const StrugglingLetters = () => {
       vowel: "/letters/vowels?tab=familiarity",
       number: "/letters/numbers?tab=familiarity",
       word: "/quiz/words", // Words don't have a letters page, so link to quiz
+      dish: "/quiz/dishes", // Dishes don't have a letters page, so link to quiz
     };
     return paths[quizType];
   };

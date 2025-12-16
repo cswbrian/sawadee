@@ -4,7 +4,8 @@ export type QuizType =
   | "final_consonant"
   | "vowel"
   | "number"
-  | "word";
+  | "word"
+  | "dish";
 
 export interface LetterStats {
   attempts: number;
