@@ -9,9 +9,9 @@
     <priority>1.0</priority>
   </url>
   
-  <!-- Letters Section -->
+  <!-- Library Section -->
   <url>
-    <loc>https://sawadee.monsoonclub.co/letters</loc>
+    <loc>https://sawadee.monsoonclub.co/library</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -19,7 +19,7 @@
   
   <!-- Initial Consonants -->
   <url>
-    <loc>https://sawadee.monsoonclub.co/letters/consonants</loc>
+    <loc>https://sawadee.monsoonclub.co/library/consonants</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -27,7 +27,7 @@
   
   <!-- Final Consonants -->
   <url>
-    <loc>https://sawadee.monsoonclub.co/letters/final-consonants</loc>
+    <loc>https://sawadee.monsoonclub.co/library/final-consonants</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -35,7 +35,7 @@
   
   <!-- Vowels -->
   <url>
-    <loc>https://sawadee.monsoonclub.co/letters/vowels</loc>
+    <loc>https://sawadee.monsoonclub.co/library/vowels</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -43,7 +43,15 @@
   
   <!-- Numbers -->
   <url>
-    <loc>https://sawadee.monsoonclub.co/letters/numbers</loc>
+    <loc>https://sawadee.monsoonclub.co/library/numbers</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Words -->
+  <url>
+    <loc>https://sawadee.monsoonclub.co/library/words</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

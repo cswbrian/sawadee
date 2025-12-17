@@ -13,7 +13,7 @@ export const Home = () => {
         <section className="mb-12">
           <h2 className="mb-6 text-left text-2xl font-bold">Letters</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-            <Link to="/letters/consonants" className="w-full">
+            <Link to="/library/consonants" className="w-full">
               <Button 
                 variant="default" 
                 size="lg" 
@@ -27,7 +27,7 @@ export const Home = () => {
                 <span>Initial Consonants</span>
               </Button>
             </Link>
-            <Link to="/letters/final-consonants" className="w-full">
+            <Link to="/library/final-consonants" className="w-full">
               <Button 
                 variant="default" 
                 size="lg" 
@@ -41,7 +41,7 @@ export const Home = () => {
                 <span>Final Consonants</span>
               </Button>
             </Link>
-            <Link to="/letters/vowels" className="w-full">
+            <Link to="/library/vowels" className="w-full">
               <Button 
                 variant="default" 
                 size="lg" 
@@ -55,7 +55,7 @@ export const Home = () => {
                 <span>Vowels</span>
               </Button>
             </Link>
-            <Link to="/letters/numbers" className="w-full">
+            <Link to="/library/numbers" className="w-full">
               <Button 
                 variant="default" 
                 size="lg" 

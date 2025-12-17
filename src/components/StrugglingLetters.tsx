@@ -136,12 +136,12 @@ export const StrugglingLetters = () => {
 
   const getLettersPagePath = (quizType: QuizType): string => {
     const paths: Record<QuizType, string> = {
-      initial_consonant: "/letters/consonants?tab=familiarity",
-      final_consonant: "/letters/final-consonants?tab=familiarity",
-      vowel: "/letters/vowels?tab=familiarity",
-      number: "/letters/numbers?tab=familiarity",
-      word: "/quiz/words", // Words don't have a letters page, so link to quiz
-      dish: "/quiz/dishes", // Dishes don't have a letters page, so link to quiz
+      initial_consonant: "/library/consonants?tab=familiarity",
+      final_consonant: "/library/final-consonants?tab=familiarity",
+      vowel: "/library/vowels?tab=familiarity",
+      number: "/library/numbers?tab=familiarity",
+      word: "/library/words?tab=familiarity", // Words now have a library page
+      dish: "/quiz/dishes", // Dishes don't have a library page, so link to quiz
     };
     return paths[quizType];
   };
