@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -80,14 +80,44 @@ export const Words = () => {
   const [searchParams] = useSearchParams();
   const categoryFilter = searchParams.get("category") as WordCategory | null;
   const defaultTab = searchParams.get("tab") || "category";
+  
+  // State for selected subcategories
+  const [selectedSubCategories, setSelectedSubCategories] = useState<Set<WordSubCategory>>(new Set());
 
-  // Filter words by category if specified
-  const filteredWords = useMemo(() => {
-    if (categoryFilter) {
-      return words.filter(w => w.category === categoryFilter);
-    }
-    return words;
+  // Get subcategories for the filtered category
+  const availableSubCategories = useMemo(() => {
+    if (!categoryFilter) return [];
+    const subCategories = new Set<WordSubCategory>();
+    words.forEach(word => {
+      if (word.category === categoryFilter && word.subCategory) {
+        subCategories.add(word.subCategory);
+      }
+    });
+    return Array.from(subCategories).sort((a, b) => {
+      const aLabel = getSubCategoryLabel(a);
+      const bLabel = getSubCategoryLabel(b);
+      return aLabel.localeCompare(bLabel);
+    });
   }, [categoryFilter]);
+
+  // Filter words by category and selected subcategories
+  const filteredWords = useMemo(() => {
+    let result = words;
+    
+    // Filter by category if specified
+    if (categoryFilter) {
+      result = result.filter(w => w.category === categoryFilter);
+    }
+    
+    // Filter by selected subcategories if any are selected
+    if (selectedSubCategories.size > 0) {
+      result = result.filter(w => 
+        w.subCategory && selectedSubCategories.has(w.subCategory)
+      );
+    }
+    
+    return result;
+  }, [categoryFilter, selectedSubCategories]);
 
   // Group words by category
   const groupedByCategory = useMemo(() => {
@@ -103,21 +133,6 @@ export const Words = () => {
     );
   }, [filteredWords]);
 
-  // Group words by subcategory
-  const groupedBySubCategory = useMemo(() => {
-    return filteredWords.reduce(
-      (acc, word) => {
-        if (word.subCategory) {
-          if (!acc[word.subCategory]) {
-            acc[word.subCategory] = [];
-          }
-          acc[word.subCategory].push(word);
-        }
-        return acc;
-      },
-      {} as Record<WordSubCategory, Word[]>
-    );
-  }, [filteredWords]);
 
   // Group words by familiarity
   const groupedByFamiliarity = useMemo(() => {
@@ -174,14 +189,18 @@ export const Words = () => {
     return categoryOrder.filter(cat => groupedByCategory[cat] && groupedByCategory[cat].length > 0);
   }, [groupedByCategory]);
 
-  // Get subcategories for the filtered category
-  const filteredSubCategoryOrder = useMemo(() => {
-    if (!categoryFilter) return [];
-    return Object.keys(groupedBySubCategory).filter(sub => {
-      const wordsInSub = groupedBySubCategory[sub as WordSubCategory];
-      return wordsInSub.some(w => w.category === categoryFilter);
-    }) as WordSubCategory[];
-  }, [categoryFilter, groupedBySubCategory]);
+  // Toggle subcategory selection
+  const toggleSubCategory = (subCategory: WordSubCategory) => {
+    setSelectedSubCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(subCategory)) {
+        next.delete(subCategory);
+      } else {
+        next.add(subCategory);
+      }
+      return next;
+    });
+  };
 
   const renderListItem = (word: Word) => (
     <motion.div
@@ -218,23 +237,57 @@ export const Words = () => {
           </div>
         )}
 
+        {/* Subcategory Filter Buttons */}
+        {categoryFilter && availableSubCategories.length > 0 && (
+          <div className="mb-6">
+            <div className="mb-3 text-sm font-semibold text-muted-foreground">
+              Filter by Subcategory:
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableSubCategories.map((subCategory) => {
+                const isSelected = selectedSubCategories.has(subCategory);
+                return (
+                  <Button
+                    key={subCategory}
+                    variant={isSelected ? "default" : "neutral"}
+                    size="sm"
+                    onClick={() => toggleSubCategory(subCategory)}
+                    className="text-xs"
+                    style={isSelected ? {
+                      backgroundColor: getCategoryColor(categoryFilter),
+                      color: "var(--foreground)",
+                    } : undefined}
+                  >
+                    {getSubCategoryLabel(subCategory)}
+                  </Button>
+                );
+              })}
+              {selectedSubCategories.size > 0 && (
+                <Button
+                  variant="neutral"
+                  size="sm"
+                  onClick={() => setSelectedSubCategories(new Set())}
+                  className="text-xs"
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="mb-6 w-full">
             <TabsTrigger value="category" className="flex-1">
               Category
             </TabsTrigger>
-            {categoryFilter && filteredSubCategoryOrder.length > 0 && (
-              <TabsTrigger value="subCategory" className="flex-1">
-                Subcategory
-              </TabsTrigger>
-            )}
             <TabsTrigger value="familiarity" className="flex-1">
               Familiarity
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="category" asChild>
-            <motion.div layout>
+            <div>
               {filteredCategoryOrder.map((category) => (
                 <div key={category} className="mb-8">
                   <div className="mb-4 flex items-center justify-between">
@@ -261,49 +314,11 @@ export const Words = () => {
                   </motion.div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           </TabsContent>
 
-          {categoryFilter && filteredSubCategoryOrder.length > 0 && (
-            <TabsContent value="subCategory" asChild>
-              <motion.div layout>
-                {filteredSubCategoryOrder.map((subCategory) => {
-                  const wordsInSub = groupedBySubCategory[subCategory]?.filter(w => w.category === categoryFilter) || [];
-                  if (wordsInSub.length === 0) return null;
-                  
-                  return (
-                    <div key={subCategory} className="mb-8">
-                      <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-lg font-semibold">
-                          {getSubCategoryLabel(subCategory)}
-                        </h2>
-                        <Badge
-                          className="text-xs"
-                          style={{
-                            backgroundColor: getCategoryColor(categoryFilter),
-                            color: "var(--foreground)",
-                          }}
-                        >
-                          {wordsInSub.length} words
-                        </Badge>
-                      </div>
-                      <motion.div
-                        layout
-                        className="space-y-2"
-                      >
-                        {wordsInSub.map((word) =>
-                          renderListItem(word)
-                        )}
-                      </motion.div>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            </TabsContent>
-          )}
-
           <TabsContent value="familiarity" asChild>
-            <motion.div layout>
+            <div>
               {familiarityOrder.map((range) => {
                 const wordsInRange = groupedByFamiliarity[range] || [];
                 if (wordsInRange.length === 0) return null;
@@ -324,7 +339,7 @@ export const Words = () => {
                   </div>
                 );
               })}
-            </motion.div>
+            </div>
           </TabsContent>
         </Tabs>
 

@@ -2,9 +2,31 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getCategoryLabel, type WordCategory, categoryOrder } from "@/data/words";
+import { getCategoryLabel, type WordCategory, categoryOrder, words } from "@/data/words";
+import { useMemo } from "react";
 
 export const Library = () => {
+  // Count words by category
+  const wordCountsByCategory = useMemo(() => {
+    const counts: Record<WordCategory, number> = {
+      greetings: 0,
+      basics: 0,
+      food: 0,
+      drink: 0,
+      places: 0,
+      directions: 0,
+      shopping: 0,
+    };
+    
+    words.forEach(word => {
+      counts[word.category]++;
+    });
+    
+    return counts;
+  }, []);
+
+  const totalWordCount = words.length;
+
   return (
     <div className="bg-background p-4 pb-8">
       <div className="mx-auto max-w-4xl">
@@ -130,7 +152,7 @@ export const Library = () => {
                             color: "var(--foreground)",
                           }}
                         >
-                          {getCategoryLabel(category)}
+                          {wordCountsByCategory[category]} words
                         </Badge>
                       </div>
                     </CardContent>
@@ -160,7 +182,7 @@ export const Library = () => {
                         color: "var(--foreground)",
                       }}
                     >
-                      All Words
+                      {totalWordCount} words
                     </Badge>
                   </div>
                 </CardContent>
