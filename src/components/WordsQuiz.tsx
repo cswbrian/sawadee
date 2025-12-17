@@ -3,7 +3,9 @@ import { words, type Word, type WordCategory, categoryOrder, getCategoryLabel, t
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LetterQuiz, type LetterQuizProps } from "./LetterQuiz";
-import { getFamiliarityPercentage } from "@/lib/utils";
+import { getFamiliarityPercentage, calculateWordTones, formatPhoneticWithTones } from "@/lib/utils";
+import { consonants } from "@/data/consonants";
+import { vowels, specialVowels } from "@/data/vowels";
 
 const QUIZ_TYPE = "word" as const;
 
@@ -55,7 +57,26 @@ const WordCard = ({ word, showSound = true, showBadge = false }: WordCardProps) 
         </div>
         {showSound && (
           <div className="text-sm sm:text-base text-muted-foreground text-center font-medium">
-            {word.phonetic}
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+              {(() => {
+                const allVowels = [...vowels, ...specialVowels];
+                const syllableTones = calculateWordTones(
+                  word.thai,
+                  word.phonetic,
+                  consonants,
+                  allVowels,
+                  word.tone
+                );
+                const formatted = formatPhoneticWithTones(word.phonetic, syllableTones);
+                
+                return formatted.map((item, idx) => (
+                  <span key={idx} className="inline-flex flex-col items-center leading-tight">
+                    <span className="leading-tight">{item.syllable}</span>
+                    <span className="text-xs font-medium opacity-90 leading-tight">({item.tone})</span>
+                  </span>
+                ));
+              })()}
+            </div>
           </div>
         )}
         {showBadge && (

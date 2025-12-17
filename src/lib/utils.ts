@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { getStats, getCorrectPercentage, type QuizType } from "./stats"
+import type { Consonant, ConsonantClass } from "@/data/consonants"
+import type { Vowel } from "@/data/vowels"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -153,4 +155,179 @@ export const breakDownThaiWord = (thai: string, phonetic?: string): string => {
   result.push(thaiChars.slice(lastSplit).join(''));
   
   return result.join('');
+};
+
+/**
+ * Calculate Thai tone for a single syllable
+ * @param syllableThai Thai text of the syllable
+ * @param consonants Array of consonant data
+ * @returns Tone as "M", "1", "2", "3", or "4"
+ */
+export const calculateThaiTone = (
+  syllableThai: string,
+  consonants: Consonant[]
+): string => {
+  // Check for tone marks first (they override everything)
+  const hasMaiEk = syllableThai.includes('่');
+  const hasMaiTho = syllableThai.includes('้');
+  const hasMaiTri = syllableThai.includes('๊');
+  const hasMaiChattawa = syllableThai.includes('๋');
+
+  // Find the first consonant in the syllable
+  let firstConsonant: Consonant | undefined;
+  const thaiChars = Array.from(syllableThai);
+  
+  for (const char of thaiChars) {
+    if (THAI_PREFIX_VOWELS.has(char) || THAI_DEPENDENT_CHARS.has(char)) {
+      continue;
+    }
+    firstConsonant = consonants.find(c => c.thai === char);
+    if (firstConsonant) break;
+  }
+
+  // If no consonant found, default to mid class
+  const consonantClass: ConsonantClass = firstConsonant?.class || "mid";
+
+  // Determine vowel length (simplified - check for long vowel patterns)
+  // Long vowels typically have more characters or specific patterns
+  const hasLongVowel = syllableThai.match(/[าเแโอ]/) !== null || 
+                       syllableThai.match(/เ-[ียือ]/) !== null ||
+                       syllableThai.match(/[ัว]/) !== null;
+  
+  // Check if syllable ends with dead ending (k, p, t sounds)
+  // This is simplified - in reality we'd need to parse the final consonant sound
+  // For now, we'll check if it ends with characters that typically represent dead endings
+  const deadEndingChars = ['ก', 'ข', 'ค', 'ฆ', 'บ', 'ป', 'พ', 'ฟ', 'ภ', 'ด', 'ต', 'ถ', 'ท', 'ธ', 'จ', 'ช', 'ซ', 'ฎ', 'ฏ', 'ฐ', 'ฑ', 'ฒ', 'ศ', 'ษ', 'ส'];
+  const lastChar = thaiChars[thaiChars.length - 1];
+  const isDeadEnding = deadEndingChars.includes(lastChar) && !hasLongVowel;
+
+  // Apply tone rules
+  // If tone mark is present, it overrides
+  if (hasMaiEk) {
+    if (consonantClass === "mid") return "1";
+    if (consonantClass === "high") return "2";
+    if (consonantClass === "low") return "2";
+  }
+  if (hasMaiTho) {
+    if (consonantClass === "mid") return "2";
+    if (consonantClass === "high") return "3";
+    if (consonantClass === "low") return "3";
+  }
+  if (hasMaiTri) {
+    return "3";
+  }
+  if (hasMaiChattawa) {
+    return "4";
+  }
+
+  // No tone mark - apply standard rules
+  if (consonantClass === "mid") {
+    if (hasLongVowel && !isDeadEnding) return "M";
+    if (hasLongVowel && isDeadEnding) return "1";
+    if (!hasLongVowel && isDeadEnding) return "1";
+    return "M"; // Default for mid class
+  }
+
+  if (consonantClass === "high") {
+    if (hasLongVowel && !isDeadEnding) return "3";
+    if (hasLongVowel && isDeadEnding) return "2";
+    if (!hasLongVowel && isDeadEnding) return "2";
+    return "3"; // Default for high class
+  }
+
+  if (consonantClass === "low") {
+    if (hasLongVowel && !isDeadEnding) return "1";
+    if (hasLongVowel && isDeadEnding) return "3";
+    if (!hasLongVowel && isDeadEnding) return "3";
+    return "1"; // Default for low class
+  }
+
+  return "M"; // Fallback
+};
+
+/**
+ * Calculate tones for all syllables in a word
+ * @param thai Thai text of the word
+ * @param phonetic Phonetic transcription (e.g., "sa-wat-dee")
+ * @param consonants Array of consonant data
+ * @param vowels Array of vowel data
+ * @param storedTone Optional stored tone string (e.g., "M-2-M")
+ * @returns Array of syllable-tone pairs
+ */
+export const calculateWordTones = (
+  thai: string,
+  phonetic: string,
+  consonants: Consonant[],
+  _vowels: Vowel[],
+  storedTone?: string
+): Array<{ syllable: string; tone: string }> => {
+  // If stored tone is provided, use it
+  if (storedTone) {
+    const phoneticSyllables = phonetic.split('-');
+    const toneSyllables = storedTone.split('-');
+    
+    return phoneticSyllables.map((syllable, index) => ({
+      syllable: syllable.trim(),
+      tone: toneSyllables[index]?.trim() || "M"
+    }));
+  }
+
+  // Otherwise, calculate tones for each syllable
+  const phoneticSyllables = phonetic.split('-');
+  
+  // Split Thai text into syllables (simplified approach)
+  // This is a complex problem - for now, we'll try to match syllables
+  // by approximating based on phonetic syllable count
+  const thaiChars = Array.from(thai);
+  const syllableCount = phoneticSyllables.length;
+  
+  // For multi-syllable words, we need to split the Thai text
+  // This is simplified - a full implementation would need proper syllable parsing
+  const result: Array<{ syllable: string; tone: string }> = [];
+  
+  if (syllableCount === 1) {
+    // Single syllable - use entire Thai text
+    const tone = calculateThaiTone(thai, consonants);
+    result.push({
+      syllable: phoneticSyllables[0],
+      tone
+    });
+  } else {
+    // Multi-syllable - approximate syllable boundaries
+    // This is a simplified approach - ideally we'd use proper Thai syllable parsing
+    const charsPerSyllable = Math.ceil(thaiChars.length / syllableCount);
+    let currentIndex = 0;
+    
+    for (let i = 0; i < syllableCount; i++) {
+      const isLast = i === syllableCount - 1;
+      const endIndex = isLast ? thaiChars.length : Math.min(currentIndex + charsPerSyllable, thaiChars.length);
+      const syllableThai = thaiChars.slice(currentIndex, endIndex).join('');
+      
+      const tone = calculateThaiTone(syllableThai, consonants);
+      result.push({
+        syllable: phoneticSyllables[i],
+        tone
+      });
+      
+      currentIndex = endIndex;
+    }
+  }
+  
+  return result;
+};
+
+/**
+ * Format phonetic with tones for display
+ * Returns an array of syllable-tone pairs ready for rendering
+ */
+export const formatPhoneticWithTones = (
+  phonetic: string,
+  syllableTones: Array<{ syllable: string; tone: string }>
+): Array<{ syllable: string; tone: string }> => {
+  // Match phonetic syllables with calculated tones
+  const phoneticSyllables = phonetic.split('-');
+  return phoneticSyllables.map((syllable, index) => ({
+    syllable: syllable.trim(),
+    tone: syllableTones[index]?.tone || "M"
+  }));
 };

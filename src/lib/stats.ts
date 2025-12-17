@@ -7,6 +7,33 @@ export type QuizType =
   | "word"
   | "dish";
 
+// Quiz categories for grouping related quiz types
+export type QuizCategory = "letters_numbers" | "words_phrases";
+
+/**
+ * Map quiz type to its category
+ * 
+ * Categories:
+ * - "letters_numbers": For quizzes about individual letters, consonants, vowels, and numbers
+ * - "words_phrases": For quizzes about words, phrases, and sentences
+ * 
+ * When adding a new quiz type:
+ * 1. Add it to the QuizType union above
+ * 2. Add it to the appropriate case in this function
+ */
+export const getQuizCategory = (quizType: QuizType): QuizCategory => {
+  switch (quizType) {
+    case "initial_consonant":
+    case "final_consonant":
+    case "vowel":
+    case "number":
+      return "letters_numbers";
+    case "word":
+    case "dish":
+      return "words_phrases";
+  }
+};
+
 export interface LetterStats {
   attempts: number;
   correct: number;

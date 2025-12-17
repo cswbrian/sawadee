@@ -8,8 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { useQuizContext } from "@/App";
 import { loadSettings, saveQuizSelection, getQuizSelection } from "@/lib/settings";
-import { recordAnswer, selectWeighted, type QuizType } from "@/lib/stats";
-import { sortByFamiliarity, getFamiliarityPercentage, breakDownThaiWord } from "@/lib/utils";
+import { recordAnswer, selectWeighted, type QuizType, getQuizCategory } from "@/lib/stats";
+import { sortByFamiliarity, getFamiliarityPercentage, breakDownThaiWord, calculateWordTones, formatPhoneticWithTones } from "@/lib/utils";
+import { consonants } from "@/data/consonants";
+import { vowels, specialVowels } from "@/data/vowels";
 
 type QuizState = "selection" | "quiz" | "end";
 
@@ -802,7 +804,7 @@ export function LetterQuiz<T extends { thai: string }>({
                     )}
                   </Button>
                 )}
-                <div className={`text-foreground thai-font text-center transition-all wrap-break-word w-full px-4 ${
+                <div className={`text-foreground thai-font text-center transition-all wrap-break-word w-full ${
                   currentItem.thai.length > 1 ? "text-5xl sm:text-6xl leading-tight" : "text-8xl leading-none"
                 }`}>
                   {showDots && getItemSubLabel && getItemSubLabel(currentItem)
@@ -815,11 +817,46 @@ export function LetterQuiz<T extends { thai: string }>({
                       <div className="text-2xl font-semibold text-foreground">
                         {correctAnswer || "-"}
                       </div>
-                      {getItemSubLabel && getItemSubLabel(currentItem) && (
-                        <div className="text-base text-muted-foreground">
-                          {getItemSubLabel(currentItem)}
-                        </div>
-                      )}
+                      {getItemSubLabel && getItemSubLabel(currentItem) && (() => {
+                        const phonetic = getItemSubLabel(currentItem);
+                        // For words & phrases category, show tones mapped to phonetic syllables
+                        const quizCategory = getQuizCategory(quizType);
+                        if (quizCategory === "words_phrases" && phonetic) {
+                          // Check if item has tone property (for Word type)
+                          const itemWithTone = currentItem as any;
+                          const storedTone = itemWithTone.tone;
+                          
+                          const allVowels = [...vowels, ...specialVowels];
+                          const syllableTones = calculateWordTones(
+                            currentItem.thai,
+                            phonetic,
+                            consonants,
+                            allVowels,
+                            storedTone
+                          );
+                          
+                          const formatted = formatPhoneticWithTones(phonetic, syllableTones);
+                          
+                          return (
+                            <div className="text-base text-muted-foreground flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2 flex-wrap justify-center">
+                                {formatted.map((item, idx) => (
+                                  <span key={idx} className="inline-flex flex-col items-center leading-tight">
+                                    <span className="leading-tight">{item.syllable}</span>
+                                    <span className="text-base font-medium opacity-90 leading-tight">({item.tone})</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        // For other quiz types, show phonetic as before
+                        return (
+                          <div className="text-base text-muted-foreground">
+                            {phonetic}
+                          </div>
+                        );
+                      })()}
                       {getItemColor && getItemLabel && (
                         <Badge
                           className="text-xs"
@@ -860,8 +897,9 @@ export function LetterQuiz<T extends { thai: string }>({
                     }
                   }
 
-                  // Hide phonetic subLabel for word and dish quizzes
-                  const shouldShowSubLabel = optionSubLabel && quizType !== "word" && quizType !== "dish";
+                  // Hide phonetic subLabel for words & phrases category
+                  const quizCategory = getQuizCategory(quizType);
+                  const shouldShowSubLabel = optionSubLabel && quizCategory !== "words_phrases";
 
                   return (
                     <Button

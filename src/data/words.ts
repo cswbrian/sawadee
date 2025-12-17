@@ -34,6 +34,7 @@ export interface Word {
   meaning: string;
   category: WordCategory;
   subCategory?: WordSubCategory;
+  tone?: string; // Optional tone exceptions (e.g., "M-2-M" for multi-syllable, "M" for single)
 }
 
 export const words: Word[] = [

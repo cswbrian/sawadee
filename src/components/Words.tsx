@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { BackButton } from "@/components/ui/back-button";
 import { 
@@ -14,9 +16,10 @@ import {
   type WordSubCategory,
   getSubCategoryLabel
 } from "@/data/words";
-import { sortByFamiliarity, getFamiliarityPercentage } from "@/lib/utils";
+import { sortByFamiliarity, getFamiliarityPercentage, calculateWordTones, formatPhoneticWithTones, breakDownThaiWord } from "@/lib/utils";
+import { consonants } from "@/data/consonants";
+import { vowels, specialVowels } from "@/data/vowels";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 const QUIZ_TYPE = "word" as const;
 
@@ -35,41 +38,62 @@ const getCategoryColor = (category: WordCategory): string => {
 
 const WordListItem = ({ word }: { word: Word }) => {
   const bgColor = getCategoryColor(word.category);
-  // Adjust Thai font size based on word length
-  const thaiLength = word.thai.length;
-  const thaiSizeClass = thaiLength > 8 
-    ? "text-lg sm:text-xl" 
-    : thaiLength > 4 
-    ? "text-xl sm:text-2xl" 
-    : "text-2xl sm:text-3xl";
+  const [showDots, setShowDots] = useState(false);
 
   return (
     <Card
-      className="w-full py-0 bg-white transition-colors hover:bg-secondary-background"
+      className="w-full py-0 bg-white transition-colors hover:bg-secondary-background relative"
       style={{ borderLeftColor: bgColor, borderLeftWidth: "3px" }}
     >
       <CardContent className="p-2.5 sm:p-3">
+        {word.phonetic && (
+          <Button
+            variant="neutral"
+            size="sm"
+            onClick={() => setShowDots(!showDots)}
+            className="absolute top-2 right-2 h-7 w-7 p-0 z-10"
+            title={showDots ? "Hide dots" : "Show dots"}
+          >
+            {showDots ? (
+              <EyeOff className="h-3.5 w-3.5" />
+            ) : (
+              <Eye className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        )}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className={`${thaiSizeClass} text-foreground thai-font leading-tight mb-1`}>
-              {word.thai}
+            <div className="text-3xl text-foreground thai-font leading-tight mb-1">
+              {showDots && word.phonetic
+                ? breakDownThaiWord(word.thai, word.phonetic)
+                : word.thai}
             </div>
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium mb-1">
-              {word.phonetic}
+            <div className="text-md text-muted-foreground font-medium mb-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(() => {
+                  const allVowels = [...vowels, ...specialVowels];
+                  const syllableTones = calculateWordTones(
+                    word.thai,
+                    word.phonetic,
+                    consonants,
+                    allVowels,
+                    word.tone
+                  );
+                  const formatted = formatPhoneticWithTones(word.phonetic, syllableTones);
+                  
+                  return formatted.map((item, idx) => (
+                    <span key={idx} className="inline-flex flex-col items-center leading-tight">
+                      <span className="leading-tight">{item.syllable}</span>
+                      <span className="text-xs font-medium opacity-90 leading-tight">({item.tone})</span>
+                    </span>
+                  ));
+                })()}
+              </div>
             </div>
             <div className="text-sm sm:text-base text-foreground">
               {word.meaning}
             </div>
           </div>
-          <Badge
-            className="text-xs shrink-0"
-            style={{
-              backgroundColor: bgColor,
-              color: "var(--foreground)",
-            }}
-          >
-            {getCategoryLabel(word.category)}
-          </Badge>
         </div>
       </CardContent>
     </Card>
