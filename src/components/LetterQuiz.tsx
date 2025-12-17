@@ -860,6 +860,9 @@ export function LetterQuiz<T extends { thai: string }>({
                     }
                   }
 
+                  // Hide phonetic subLabel for word and dish quizzes
+                  const shouldShowSubLabel = optionSubLabel && quizType !== "word" && quizType !== "dish";
+
                   return (
                     <Button
                       key={`${optionValue}-${index}`}
@@ -872,7 +875,7 @@ export function LetterQuiz<T extends { thai: string }>({
                       }`}
                     >
                       <span className="leading-tight text-center">{optionLabel || "-"}</span>
-                      {optionSubLabel && (
+                      {shouldShowSubLabel && (
                         <span className="text-sm font-normal opacity-80 leading-tight text-center">{optionSubLabel}</span>
                       )}
                     </Button>
