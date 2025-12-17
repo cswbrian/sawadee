@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { useQuizContext } from "@/App";
 import { loadSettings, saveQuizSelection, getQuizSelection } from "@/lib/settings";
 import { recordAnswer, selectWeighted, type QuizType } from "@/lib/stats";
@@ -205,6 +205,7 @@ export function LetterQuiz<T extends { thai: string }>({
     selectedAnswer: string;
     isCorrect: boolean;
   }>>([]);
+  const [showDots, setShowDots] = useState<boolean>(false);
 
   // Update navigation visibility based on quiz state
   useEffect(() => {
@@ -429,6 +430,7 @@ export function LetterQuiz<T extends { thai: string }>({
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
+    setShowDots(false); // Reset dots visibility when starting quiz
     
     // Pass the filtered pool of items to generateOptions
     generateOptionsForQuestion(shuffled[0], uniqueItems);
@@ -465,6 +467,7 @@ export function LetterQuiz<T extends { thai: string }>({
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setSelectedAnswer(null);
+      setShowDots(false); // Reset dots visibility for next question
       
       // Use the stored shuffled items as the pool if possible, or reconstruct the pool
       // For consistency, we should ideally store the pool or re-derive it.
@@ -531,6 +534,7 @@ export function LetterQuiz<T extends { thai: string }>({
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
+    setShowDots(false); // Reset dots visibility when starting quiz
     
     // Pass the filtered pool of items to generateOptions
     generateOptionsForQuestion(shuffled[0], uniqueItems);
@@ -546,6 +550,7 @@ export function LetterQuiz<T extends { thai: string }>({
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setAnswerResults([]);
+    setShowDots(false); // Reset dots visibility when returning to selection
   };
 
   const handleExitQuiz = () => {
@@ -555,6 +560,7 @@ export function LetterQuiz<T extends { thai: string }>({
       setCurrentIndex(0);
       setSelectedAnswer(null);
       setAnswerResults([]);
+      setShowDots(false); // Reset dots visibility when exiting quiz
     }
   };
 
@@ -779,12 +785,27 @@ export function LetterQuiz<T extends { thai: string }>({
           </div>
 
           <div className="flex flex-col items-center gap-8 py-8">
-            <Card className="flex h-[280px] w-full max-w-md flex-col items-center justify-center p-8 bg-white">
+            <Card className="flex h-[280px] w-full max-w-md flex-col items-center justify-center p-8 bg-white relative">
               <CardContent className="flex h-full flex-col items-center justify-center gap-4 p-0 w-full">
+                {getItemSubLabel && getItemSubLabel(currentItem) && (
+                  <Button
+                    variant="neutral"
+                    size="sm"
+                    onClick={() => setShowDots(!showDots)}
+                    className="absolute top-2 right-2 h-8 w-8 p-0"
+                    title={showDots ? "Hide dots" : "Show dots"}
+                  >
+                    {showDots ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <div className={`text-foreground thai-font text-center transition-all wrap-break-word w-full px-4 ${
                   currentItem.thai.length > 1 ? "text-5xl sm:text-6xl leading-tight" : "text-8xl leading-none"
                 }`}>
-                  {selectedAnswer !== null && getItemSubLabel && getItemSubLabel(currentItem)
+                  {showDots && getItemSubLabel && getItemSubLabel(currentItem)
                     ? breakDownThaiWord(currentItem.thai, getItemSubLabel(currentItem))
                     : currentItem.thai}
                 </div>
