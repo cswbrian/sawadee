@@ -12,55 +12,55 @@ export interface Vowel {
 export const vowels: Vowel[] = [
   // Group 1: Basic Simple Vowels (3 pairs)
   // Pair 1: อา / อะ
-  { thai: "อา", sound: "/aː/", type: "long", group: "basic" },
-  { thai: "อะ", sound: "/a/", type: "short", group: "basic" },
+  { thai: "-า", sound: "/aː/", type: "long", group: "basic" },
+  { thai: "-ะ", sound: "/a/", type: "short", group: "basic" },
   
   // Pair 2: อี / อิ
-  { thai: "อี", sound: "/iː/", type: "long", group: "basic" },
-  { thai: "อิ", sound: "/i/", type: "short", group: "basic" },
+  { thai: "-ี", sound: "/iː/", type: "long", group: "basic" },
+  { thai: "-ิ", sound: "/i/", type: "short", group: "basic" },
   
   // Pair 3: อู / อุ
-  { thai: "อู", sound: "/uː/", type: "long", group: "basic" },
-  { thai: "อุ", sound: "/u/", type: "short", group: "basic" },
+  { thai: "-ู", sound: "/uː/", type: "long", group: "basic" },
+  { thai: "-ุ", sound: "/u/", type: "short", group: "basic" },
   
   // Group 2: Mid-Level Vowels (4 pairs)
   // Pair 4: เอ / เอะ
-  { thai: "เอ", sound: "/eː/", type: "long", group: "mid" },
-  { thai: "เอะ", sound: "/e/", type: "short", group: "mid" },
+  { thai: "เ-", sound: "/eː/", type: "long", group: "mid" },
+  { thai: "เ-ะ", sound: "/e/", type: "short", group: "mid" },
   
   // Pair 5: แอ / แอะ
-  { thai: "แอ", sound: "/ɛː/", type: "long", group: "mid" },
-  { thai: "แอะ", sound: "/ɛ/", type: "short", group: "mid" },
+  { thai: "แ-", sound: "/ɛː/", type: "long", group: "mid" },
+  { thai: "แ-ะ", sound: "/ɛ/", type: "short", group: "mid" },
   
   // Pair 6: โอ / โอะ
-  { thai: "โอ", sound: "/oː/", type: "long", group: "mid" },
-  { thai: "โอะ", sound: "/o/", type: "short", group: "mid" },
+  { thai: "โ-", sound: "/oː/", type: "long", group: "mid" },
+  { thai: "โ-ะ", sound: "/o/", type: "short", group: "mid" },
   
   // Pair 7: ออ / เอาะ
-  { thai: "ออ", sound: "/ɔː/", type: "long", group: "mid" },
-  { thai: "เอาะ", sound: "/ɔ/", type: "short", group: "mid" },
+  { thai: "-อ", sound: "/ɔː/", type: "long", group: "mid" },
+  { thai: "เ-าะ", sound: "/ɔ/", type: "short", group: "mid" },
   
   // Group 3: Complex Vowels (4 pairs)
   // Pair 8: เออ / เออะ
-  { thai: "เออ", sound: "/ɤː/", type: "long", group: "complex" },
-  { thai: "เออะ", sound: "/ɤ/", type: "short", group: "complex" },
+  { thai: "เ-อ", sound: "/ɤː/", type: "long", group: "complex" },
+  { thai: "เ-อะ", sound: "/ɤ/", type: "short", group: "complex" },
   
   // Pair 9: เอีย / เอียะ
-  { thai: "เอีย", sound: "/iaː/", type: "long", group: "complex" },
-  { thai: "เอียะ", sound: "/ia/", type: "short", group: "complex" },
+  { thai: "เ-ีย", sound: "/iaː/", type: "long", group: "complex" },
+  { thai: "เ-ียะ", sound: "/ia/", type: "short", group: "complex" },
   
   // Pair 10: เอือ / เอือะ
-  { thai: "เอือ", sound: "/ɯaː/", type: "long", group: "complex" },
-  { thai: "เอือะ", sound: "/ɯa/", type: "short", group: "complex" },
+  { thai: "เ-ือ", sound: "/ɯaː/", type: "long", group: "complex" },
+  { thai: "เ-ือะ", sound: "/ɯa/", type: "short", group: "complex" },
   
   // Pair 11: อัว / อัวะ
-  { thai: "อัว", sound: "/uaː/", type: "long", group: "complex" },
-  { thai: "อัวะ", sound: "/ua/", type: "short", group: "complex" },
+  { thai: "-ัว", sound: "/uaː/", type: "long", group: "complex" },
+  { thai: "-ัวะ", sound: "/ua/", type: "short", group: "complex" },
   
   // Group 4: Diphthongs (1 pair)
   // Pair 12: เอา / เอาะ (Note: เอาะ is also used with ออ, but เอา is a distinct long vowel)
-  { thai: "เอา", sound: "/au/", type: "long", group: "diphthong" },
-  { thai: "เอาะ", sound: "/ɔ/", type: "short", group: "diphthong" },
+  { thai: "เ-า", sound: "/au/", type: "long", group: "diphthong" },
+  { thai: "เ-าะ", sound: "/ɔ/", type: "short", group: "diphthong" },
 ];
 
 // 8 Special Vowel Symbols
